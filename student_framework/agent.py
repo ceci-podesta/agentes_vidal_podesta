@@ -11,10 +11,12 @@ Los tests de conformidad en `tests/conformance/test_m1.py` y
 
 from __future__ import annotations
 
+import json
 from typing import Any, Callable
 
 from mia_agents.protocols import LLMClient
-from mia_agents.types import AgentResult, ToolSchema
+from mia_agents.types import AgentResult, AgentStep, ToolSchema
+
 
 
 class MyAgent:
@@ -96,7 +98,76 @@ class MyAgent:
         `LLMResponse` y exponlos en `AgentResult.input_tokens` /
         `AgentResult.output_tokens`.
         """
-        raise NotImplementedError("M1: implementa el bucle del agente")
+        messages: list[dict[str, Any]] = [{"role": "user", "content": user_message}]
+
+        steps: list[AgentStep] = []
+
+        for _ in range(self._max_iterations):
+            resp = self._llm.chat(
+                messages=messages,
+                tools=list(self._schemas.values()),
+                system=self._system,
+            )
+
+            if not resp.tool_calls:
+                return AgentResult(answer=resp.content or "", steps=steps)
+
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": resp.content,
+                    "tool_calls": [
+                        {
+                            "id": tool_call.id,
+                            "function": {
+                                "name": tool_call.name,
+                                "arguments": tool_call.arguments,
+                            },
+                        }
+                        for tool_call in resp.tool_calls
+                    ],
+                }
+            )
+
+            for tool_call in resp.tool_calls:
+                tool_output: str | None = None
+                error: str | None = None
+
+                tool = self._tools.get(tool_call.name)
+                if tool is None:
+                    error = f"Herramienta desconocida: {tool_call.name}"
+                else:
+                    try:
+                        kwargs = json.loads(tool_call.arguments or "{}")
+                        if not isinstance(kwargs, dict):
+                            raise ValueError("Los argumentos de la tool deben ser un objeto JSON.")
+                        tool_output = tool(**kwargs)
+                    except Exception as exc:
+                        error = str(exc)
+
+                steps.append(
+                    AgentStep(
+                        tool_name=tool_call.name,
+                        tool_input=tool_call.arguments,
+                        tool_output=tool_output,
+                        error=error,
+                    )
+                )
+                messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "content": tool_output if error is None else f"Error: {error}",
+                    }
+                )
+
+        return AgentResult(
+            answer="",
+            steps=steps,
+            error="Se alcanzo el limite maximo de iteraciones.",
+        )
+
+
 
     def structured_call(
         self,
