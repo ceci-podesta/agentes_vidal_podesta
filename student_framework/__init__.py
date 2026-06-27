@@ -15,6 +15,9 @@ from mia_agents.protocols import Agent
 
 from .agent import MyAgent
 
+from .tools.calculator import calculator, calculator_schema
+
+
 
 def build_agent(config: dict[str, Any] | None = None) -> Agent:
     """Construye y configura su agente.
@@ -35,6 +38,8 @@ def build_agent(config: dict[str, Any] | None = None) -> Agent:
         kwargs["max_history_messages"] = config["max_history_messages"]
 
     agent = MyAgent(**kwargs)
+
+    agent.register_tool(calculator, calculator_schema)
 
     # Ejemplo de registro (elimínenlo cuando sus herramientas estén listas):
     # from student_framework.tools.example import reverse_string, reverse_string_schema
