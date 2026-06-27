@@ -1,11 +1,14 @@
 msol@DESKTOP-PTLVTMI:~/agentes_vidal_podesta
  source .venv/bin/activate
-
+test que nos dan
 pytest tests/conformance/test_m1.py -v 
+test que armamos
 pytest tests/test_scenarios_m1.py -v
 
 export AWS_REGION="us-east-2"
 export BEDROCK_MODEL_ID="amazon.nova-lite-v1:0"
+
+
 
 python scripts/bedrock_llm_smoke.py
 
