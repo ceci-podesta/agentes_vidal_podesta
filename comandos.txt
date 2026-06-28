@@ -1,0 +1,25 @@
+msol@DESKTOP-PTLVTMI:~/agentes_vidal_podesta
+ source .venv/bin/activate
+test que nos dan
+pytest tests/conformance/test_m1.py -v 
+test que armamos
+pytest tests/test_scenarios_m1.py -v
+
+export AWS_REGION="us-east-2"
+export BEDROCK_MODEL_ID="amazon.nova-lite-v1:0"
+
+
+
+python scripts/bedrock_llm_smoke.py
+
+python -m mia_agents.cli run --module student_framework \
+  --message "¿Cuánto es 17 * 23? Usá la calculadora."
+
+python -m mia_agents.cli run --module student_framework \
+  --message "¿Cuántas palabras tiene la frase 'el agente usa herramientas para resolver tareas'?"
+
+python -m mia_agents.cli run --module student_framework \
+  --message "Leé el archivo prueba.txt y decime qué dice."
+
+python -m mia_agents.cli run --module student_framework \
+  --message "Leé prueba.txt y contá cuántas palabras tiene."
