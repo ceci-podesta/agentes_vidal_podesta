@@ -99,9 +99,7 @@ class MyAgent:
         """
         # Historial de la conversación para esta llamada a `run`. En M1 cada
         # `run` es independiente (sin estado entre llamadas).
-        messages: list[dict[str, Any]] = [
-            {"role": "user", "content": user_message}
-        ]
+        messages: list[dict[str, Any]] = [{"role": "user", "content": user_message}]
         steps: list[AgentStep] = []
         total_input_tokens: int | None = None
         total_output_tokens: int | None = None
@@ -111,7 +109,7 @@ class MyAgent:
         for _ in range(self._max_iterations):
             response = self._llm.chat(
                 messages=messages,
-                tools=list(self._schemas.values()) if self._schemas else None,
+                tools=list(self._schemas.values()),
                 system=self._system,
             )
 
@@ -173,6 +171,7 @@ class MyAgent:
             output_tokens=total_output_tokens,
         )
 
+
     def _execute_tool_call(self, tool_call: ToolCall) -> tuple[AgentStep, str]:
         """Ejecuta un único `tool_call` y devuelve su `AgentStep` y la salida.
 
@@ -187,8 +186,16 @@ class MyAgent:
         # 1. Parsear los argumentos JSON emitidos por el LLM.
         try:
             kwargs = json.loads(raw_arguments) if raw_arguments else {}
+            if not isinstance(kwargs, dict):
+                raise ValueError("Los argumentos de la tool deben ser un objeto JSON.")
         except json.JSONDecodeError as exc:
             error = f"Argumentos JSON inválidos para '{name}': {exc}"
+            return (
+                AgentStep(name, raw_arguments, None, error=error),
+                error,
+            )
+        except ValueError as exc:
+            error = f"Argumentos inválidos para '{name}': {exc}"
             return (
                 AgentStep(name, raw_arguments, None, error=error),
                 error,
@@ -206,7 +213,7 @@ class MyAgent:
         # 3. Ejecutar el callable con los kwargs parseados.
         try:
             output = tool(**kwargs)
-        except Exception as exc:  # noqa: BLE001 - cualquier fallo se reporta
+        except Exception as exc:
             error = f"Error al ejecutar '{name}': {exc}"
             return (
                 AgentStep(name, raw_arguments, None, error=error),
@@ -218,6 +225,7 @@ class MyAgent:
             AgentStep(name, raw_arguments, output_str, error=None),
             output_str,
         )
+
 
     def structured_call(
         self,
