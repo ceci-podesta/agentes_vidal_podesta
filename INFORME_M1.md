@@ -1,7 +1,5 @@
 # Informe M1 — Borrador Validado
 
-Este archivo reúne las secciones del informe M1 que ya fueron revisadas y validadas. El diagrama de arquitectura queda pendiente de cierre.
-
 ## 1. Alcance del Milestone 1
 
 En este milestone implementamos el núcleo de un agente con herramientas:
