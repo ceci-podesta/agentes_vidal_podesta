@@ -15,6 +15,7 @@ produciría: primero los `tool_calls` y al final la respuesta de texto.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from mia_agents.testing import MockLLMClient
 from mia_agents.types import LLMResponse, ToolCall
@@ -34,7 +35,7 @@ def _tool_call(call_id: str, name: str, **arguments: object) -> ToolCall:
 # Escenario 1: dos herramientas en una misma corrida (calculadora + contador).
 # ---------------------------------------------------------------------------
 def test_scenario_dos_herramientas_calculadora_y_contador() -> None:
-    """El agente calcula 8 % 3 y luego cuenta las palabras de una frase.
+    """El agente calcula 8 * 3 y luego cuenta las palabras de una frase.
 
     Demuestra el bucle multi-turno: tool_call -> resultado -> tool_call ->
     resultado -> respuesta final de texto.
@@ -45,10 +46,10 @@ def test_scenario_dos_herramientas_calculadora_y_contador() -> None:
             LLMResponse(
                 content=None,
                 tool_calls=[
-                    _tool_call("c1", "calculator", left_operand=8, right_operand=3, operator="%")
+                    _tool_call("c1", "calculator", left_operand=8, right_operand=3, operator="*")
                 ],
             ),
-            # Turno 2: con el resultado "2", pide contar palabras.
+            # Turno 2: con el resultado "24", pide contar palabras.
             LLMResponse(
                 content=None,
                 tool_calls=[
@@ -56,58 +57,67 @@ def test_scenario_dos_herramientas_calculadora_y_contador() -> None:
                 ],
             ),
             # Turno 3: respuesta final de texto (sin tool_calls -> termina).
-            LLMResponse(content="8 módulo 3 es 2 y la frase tiene 3 palabras."),
+            LLMResponse(content="8 por 3 es 24 y la frase tiene 3 palabras."),
         ]
     )
     agent = build_agent({"llm_client": mock})
 
-    result = agent.run("Calculá 8 % 3 y contá las palabras de 'hola que tal'.")
+    result = agent.run("Calculá 8 * 3 y contá las palabras de 'hola que tal'.")
 
     # Se usaron exactamente dos herramientas, en orden.
     assert len(result.steps) == 2
     assert result.steps[0].tool_name == "calculator"
-    assert result.steps[0].tool_output == "2"
+    assert result.steps[0].tool_output == "24"
     assert result.steps[0].error is None
     assert result.steps[1].tool_name == "word_counter"
     assert result.steps[1].tool_output == "3"
     assert result.steps[1].error is None
 
     # Respuesta final y número total de llamadas al LLM (2 tools + 1 final).
-    assert result.answer == "8 módulo 3 es 2 y la frase tiene 3 palabras."
+    assert result.answer == "8 por 3 es 24 y la frase tiene 3 palabras."
     assert mock.call_count == 3
 
 
 # ---------------------------------------------------------------------------
 # Escenario 2: leer un archivo real y contar sus palabras (file_reader + contador).
 # ---------------------------------------------------------------------------
-def test_scenario_leer_archivo_y_contar_palabras(tmp_path) -> None:
-    """El agente lee un archivo de texto y cuenta cuántas palabras tiene."""
-    archivo = tmp_path / "notas.txt"
+def test_scenario_leer_archivo_y_contar_palabras() -> None:
+    """El agente lee un archivo permitido dentro de sample_files y cuenta sus palabras."""
+    sample_dir = Path("sample_files")
+    sample_dir.mkdir(exist_ok=True)
+    archivo = sample_dir / "notas_test_m1.txt"
     archivo.write_text("uno dos tres cuatro", encoding="utf-8")
 
     mock = MockLLMClient(
         [
             LLMResponse(
                 content=None,
-                tool_calls=[_tool_call("c1", "file_reader", path=str(archivo))],
+                tool_calls=[
+                    _tool_call("c1", "file_reader", path="notas_test_m1.txt")
+                ],
             ),
             LLMResponse(
                 content=None,
-                tool_calls=[_tool_call("c2", "word_counter", text="uno dos tres cuatro")],
+                tool_calls=[
+                    _tool_call("c2", "word_counter", text="uno dos tres cuatro")
+                ],
             ),
             LLMResponse(content="El archivo tiene 4 palabras."),
         ]
     )
     agent = build_agent({"llm_client": mock})
 
-    result = agent.run(f"Leé {archivo} y contá sus palabras.")
+    result = agent.run("Leé notas_test_m1.txt y contá sus palabras.")
 
     assert len(result.steps) == 2
     assert result.steps[0].tool_name == "file_reader"
     assert result.steps[0].tool_output == "uno dos tres cuatro"
+    assert result.steps[0].error is None
     assert result.steps[1].tool_name == "word_counter"
     assert result.steps[1].tool_output == "4"
+    assert result.steps[1].error is None
     assert result.answer == "El archivo tiene 4 palabras."
+
 
 
 # ---------------------------------------------------------------------------
