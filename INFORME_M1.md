@@ -1,4 +1,4 @@
-# Informe M1 — Borrador Validado
+# Informe — Milestone 1
 
 ## 1. Alcance del Milestone 1
 
