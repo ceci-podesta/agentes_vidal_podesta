@@ -13,9 +13,13 @@ from __future__ import annotations
 
 import json
 from typing import Any, Callable
+from pydantic import ValidationError
+
 
 from mia_agents.protocols import LLMClient
 from mia_agents.types import AgentResult, AgentStep, ToolCall, ToolSchema
+from mia_agents.tool_schema import FINAL_RESULT_TOOL_NAME, final_result_tool_schema
+
 
 
 class MyAgent:
@@ -51,9 +55,8 @@ class MyAgent:
         self._max_history_messages = max_history_messages
         self._tools: dict[str, Callable[..., str]] = {}
         self._schemas: dict[str, ToolSchema] = {}
-
-        # TODO (M1): inicializa el estado interno para las herramientas registradas.
-        # TODO (M2): inicializa la estructura de historial conversacional.
+        self._history: list[dict[str, Any]] = []#M2: Este atributo pertenece a la instancia y sobrevive entre llamadas sucesivas a run()
+                                                #Es donde vamos a almacenar el historial de la conversación
 
     def register_tool(
         self,
@@ -71,6 +74,54 @@ class MyAgent:
         """
         self._tools[schema.name] = tool
         self._schemas[schema.name] = schema
+
+
+    def _build_sliding_window(
+        self,
+        messages: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        """Devuelve una vista acotada del historial para enviar al LLM.
+
+        Conserva los mensajes recientes. Si el ultimo mensaje del user quedo
+        fuera de esa ventana, lo incorpora y usa los lugares restantes para
+        los mensajes mas recientes.
+        """
+        limit = self._max_history_messages
+
+        #M2 exige que el ultimo mensaje del user esté en la ventana.
+        #Con max_history_messages definido eso seria imposible, por lo que levantamos un error. (Caso de borde)
+        if limit < 1:
+            raise ValueError("max_history_messages debe ser mayor que cero.")
+
+        # Si todo el historial entra, devolvemos una copia sin recortar.
+        if len(messages) <= limit:
+            return list(messages)
+
+        # Primera aproximacion: los ultimos N mensajes, por recencia.
+        window = messages[-limit:]
+
+        # Buscamos desde el final el ultimo mensaje emitido por el usuario.
+        # run() siempre agrega un user_message antes de llamar a este metodo.
+        latest_user = next(
+            message
+            for message in reversed(messages)
+            if message.get("role") == "user"
+        )
+
+        # Si el ultimo mensaje del user ya esta en la ventana reciente, no hace falta modificarla.
+        if latest_user in window:
+            return list(window)
+
+        #Si el ultimo mensaje del user no esta en la ventana, lo agregamos y completamos con los mensajes 
+        #mas recientes hasta llegar al limite.
+        #Caso de borde: Si limit (= max_history_messages) es 1, no tomamos mensajes adicionales al último del user
+        #Y como messages[-0:] devolveria toda la lista, trabajamos con la condición [] para limit = 1
+        recent_messages = messages[-(limit - 1):] if limit > 1 else []
+
+        # La ventana final conserva el ultimo mensaje del user y completa el "presupuesto" con los mensajes mas recientes.
+        return [latest_user, *recent_messages]
+
+
 
 
     def run(self, user_message: str) -> AgentResult:
@@ -97,39 +148,83 @@ class MyAgent:
         `LLMResponse` y exponlos en `AgentResult.input_tokens` /
         `AgentResult.output_tokens`.
         """
-        # Historial de la conversación para esta llamada a `run`. En M1 cada
-        # `run` es independiente (sin estado entre llamadas).
-        messages: list[dict[str, Any]] = [
-            {"role": "user", "content": user_message}
-        ]
+
+        #M2
+        #list(...) crea una lista nueva en la que guarda los elementos del "historial persistente" entre runs (que vive en self._history).
+        #Al armarlo así, estamos creando una copia del historial previo y no editandolo directamente.
+        messages = list(self._history)
+        
+        #El mensaje nuevo (user_message) se agrega despues del historial anterior.
+        messages.append({"role": "user", "content": user_message})
+
+        # Como en M1, steps y los contadores siguen perteneciendo solamente al run actual.
         steps: list[AgentStep] = []
-        total_input_tokens: int | None = None
-        total_output_tokens: int | None = None
+
+
+        total_input_tokens = 0
+        total_output_tokens = 0
+        has_token_usage = False
+
 
         # Tope de llamadas al LLM: el bucle nunca llama a `chat` más de
         # `max_iterations` veces, evitando bucles infinitos.
         for _ in range(self._max_iterations):
+            
+            messages_for_llm = self._build_sliding_window(messages)
+
             response = self._llm.chat(
-                messages=messages,
+                messages=messages_for_llm,
                 tools=list(self._schemas.values()) if self._schemas else None,
                 system=self._system,
             )
 
-            # Acumular tokens reportados por el proveedor (None -> 0). Si
-            # ninguna respuesta reporta tokens, el total queda en None.
-            if response.input_tokens is not None:
-                total_input_tokens = (total_input_tokens or 0) + response.input_tokens
-            if response.output_tokens is not None:
-                total_output_tokens = (total_output_tokens or 0) + response.output_tokens
+            #Acumular tokens reportados por el proveedor.
+            #Si el proveedor informa al menos uno de los dos valores, 
+            #los campos ausentes de otras respuestas cuentan 0.
+
+            if (
+                response.input_tokens is not None
+                or response.output_tokens is not None
+            ):
+                has_token_usage = True
+
+
+            total_input_tokens += response.input_tokens or 0
+            total_output_tokens += response.output_tokens or 0
+
 
             # Condición de parada (M1): el LLM devuelve texto sin tool_calls.
+            #if not response.tool_calls:
+            #    return AgentResult(
+            #        answer=response.content or "",
+            #        steps=steps,
+            #        input_tokens=total_input_tokens,
+            #        output_tokens=total_output_tokens,
+            #    )
+
             if not response.tool_calls:
+                #Es decir, si la respuesta del LLM (response) no contiene pedidos para ejecutar tools,
+                #sabemos que response.content es la respuesta final y la appendeamos a messages con role "assistant"
+
+                messages.append(
+                    {
+                        "role": "assistant",
+                        "content": response.content or "",
+                    }
+                )
+
+                #Llegado este punto, actualizamos el contenido de self._history con el historial (messages)
+                #respetando max_history_messages.
+                #es decir, la info que traía inicialmente más la que se sumó de esta nueva llamada a run()
+                self._history = messages
+
                 return AgentResult(
                     answer=response.content or "",
                     steps=steps,
                     input_tokens=total_input_tokens,
                     output_tokens=total_output_tokens,
                 )
+
 
             # El modelo pidió herramientas: registramos su turno (incluidos
             # los tool_calls) en el historial antes de ejecutarlas.
@@ -160,8 +255,13 @@ class MyAgent:
                     }
                 )
 
-        # Se alcanzó `max_iterations` sin una respuesta final de texto.
-        # Devolvemos igualmente un AgentResult válido, registrando el corte.
+        
+        #Si se alcanza el limite `max_iterations` sin una respuesta final de texto (salió del for), 
+        #conservamos la ventana disponoble
+        
+        self._history = self._build_sliding_window(messages)
+
+        #Y Devolvemos un AgentResult válido, que indique la situación (corte por alcanzar el límite de iteraciones).
         return AgentResult(
             answer="",
             steps=steps,
@@ -219,6 +319,9 @@ class MyAgent:
             output_str,
         )
 
+
+    
+
     def structured_call(
         self,
         prompt: str,
@@ -246,4 +349,114 @@ class MyAgent:
 
         El M1 deja esto como stub; los tests de M2 verifican el contrato.
         """
-        raise NotImplementedError("M2: implementa salida estructurada con reparación")
+        
+        final_result_schema = final_result_tool_schema(schema)
+
+
+        # "Conversacion" interna a structured_call (No guarda relación con self._history y self._max_history_messages).
+        messages: list[dict[str, Any]] = [
+            {"role": "user", "content": prompt}
+        ]
+
+
+        # Guarda el ultimo problema para informar una reparacion o el fallo definitivo tras agotar los intentos.
+        #(se inicializa en None)
+        last_error: str | None = None
+
+
+        # Intento inicial + cantidad maxima de reparaciones permitidas.
+        for attempt in range(max_repair_attempts + 1):
+            response = self._llm.chat(
+                messages=messages,
+                # En cada intento ofrecemos solamente final_result (pero messagges va guardando el historial).
+                tools=[final_result_schema],
+                system=self._system,
+            )
+
+
+            # Buscar el tool_call obligatorio que cierra la respuesta.
+            final_call = next(
+                (
+                    tool_call
+                    for tool_call in response.tool_calls
+                    if tool_call.name == FINAL_RESULT_TOOL_NAME
+                ),
+                None,
+            )
+
+
+            if final_call is None:
+                # Texto libre o una tool distinta: no es una salida valida.
+                last_error = (
+                    "El modelo no invocó la tool final_result. "
+                    "Debe usarla para devolver la respuesta."
+                )
+            else:
+                try:
+                    # Pasar de la cadena JSON emitida por el LLM a dict Python.
+                    arguments = json.loads(final_call.arguments or "{}")
+
+
+                    if not isinstance(arguments, dict):
+                        raise ValueError(
+                            "Los argumentos de final_result deben ser un "
+                            "objeto JSON."
+                        )
+
+
+                    # Si valida, structured_call termina devolviendo la
+                    # instancia concreta del modelo Pydantic recibido.
+                    return schema.model_validate(arguments)
+                except (
+                    json.JSONDecodeError,
+                    ValidationError,
+                    ValueError,
+                ) as exc:
+                    # JSON invalido, estructura incorrecta o tipos Pydantic
+                    # invalidos: se guarda el detalle para reparar.
+                    last_error = str(exc)
+
+
+            # No se genera otro intento despues de usar la ultima oportunidad.
+            if attempt == max_repair_attempts:
+                break
+
+
+            # Conservar la respuesta defectuosa antes del pedido de reparacion.
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": response.content or "",
+                    "tool_calls": [
+                        {
+                            "id": tool_call.id,
+                            "function": {
+                                "name": tool_call.name,
+                                "arguments": tool_call.arguments,
+                            },
+                        }
+                        for tool_call in response.tool_calls
+                    ],
+                }
+            )
+
+
+            # Instruccion temporal para que el LLM corrija el formato.
+            messages.append(
+                {
+                    "role": "user",
+                    "content": (
+                        "La respuesta anterior no cumplió el formato requerido. "
+                        f"Error: {last_error}. "
+                        "Corrige la respuesta invocando la tool final_result."
+                    ),
+                }
+            )
+
+
+        # Respuesta cuando se agotan intentos (asegura que no se devuelve None ni un objeto parcial).
+        raise ValueError(
+            "No se pudo obtener una respuesta estructurada válida "
+            f"después de {max_repair_attempts + 1} intentos. "
+            f"Último error: {last_error}"
+        )
