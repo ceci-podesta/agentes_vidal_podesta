@@ -1,67 +1,85 @@
 # Informe — Milestone 1
 
-Framework mínimo de agentes (`mia_agents`). Implementación del grupo en
-`student_framework/`.
+## 1. Alcance del Milestone 1
 
----
+En este milestone implementamos el núcleo de un agente con herramientas:
 
-## 1. Diagrama de arquitectura
+- construcción del agente desde `build_agent(config)`;
+- inyección de un cliente LLM real o mockeado;
+- registro de herramientas mediante `register_tool`;
+- exposición de herramientas al LLM mediante `ToolSchema`;
+- ejecución local de herramientas solicitadas por el LLM;
+- realimentación del resultado al modelo;
+- corte seguro por `max_iterations`.
 
+El alcance de M1 no incluye memoria persistente entre llamadas, salida estructurada con `final_result`, reintentos ante fallos transitorios del proveedor ni evaluación sobre el mundo simulado de M3.
+
+## 2. Diagrama de arquitectura
+
+```text
+┌────────────────────────────────────────────┐
+│ **Constructor del agente**                 │
+│ Crea una instancia de MyAgent y registra   │
+│ las tools disponibles.                     │
+│                                            │
+│ build_agent(config)                        │
+│ (student_framework/__init__.py)            │
+└─────────────────────┬──────────────────────┘
+                      │
+                      ▼
+┌───────────────────────────────────────────────────────────────┐
+│ **Agente**                                                    │
+│ Coordina el registro de tools y ejecuta                       │
+│ el bucle principal del M1.                                    │
+│                                                               │
+│ MyAgent                                                       │
+│ (student_framework/agent.py)                                  │
+└───────────────┬──────────────────────────────────────┬────────┘
+                │                                      │
+                │                                      │
+                ▼                                      ▼
+┌────────────────────────────────┐   ┌────────────────────────────────┐
+│ **Registro de schemas**        │   │ **Registro de tools**          │
+│ Guarda las descripciones que   │   │ Guarda las tools registradas   │
+│ se exponen al LLM.             │   │ para ejecutarlas por nombre.   │
+│                                │   │                                │
+│ self._schemas                  │   │ self._tools                    │
+│ (student_framework/agent.py)   │   │ (student_framework/agent.py)   │
+└───────────────┬────────────────┘   └───────────────┬────────────────┘
+                │                                    │
+                ▼                                    ▼
+┌────────────────────────────────┐   ┌────────────────────────────────┐
+│ **Cliente LLM**                │   │ **Tools**                      │
+│ Recibe mensajes, schemas y     │   │ Código de las herramientas     │
+│ system prompt; adapta el       │   │ disponibles.                   │
+│ pedido al proveedor elegido.   │   │                                │
+│ (Ollama / Bedrock /            │   │                                │
+│   MockLLMClient)               │   │                                │
+│                                │   │ calculator / file_reader /     │
+│ LLMClient.chat(...)            │   │ word_counter                   │
+│ (mia_agents/llm_client.py)     │   │ (student_framework/tools/*)    │
+└────────────────────────────────┘   └────────────────────────────────┘
+     
 ```
-                    ┌──────────────────────────────────────────────┐
-                    │                  build_agent()                 │
-                    │            (student_framework/__init__.py)     │
-                    │  - crea MyAgent con el LLMClient inyectado     │
-                    │  - registra las 3 herramientas                 │
-                    └───────────────────────┬──────────────────────┘
-                                            │
-                              user_message  │  AgentResult
-                                            ▼
-   ┌─────────────────────────────────────────────────────────────────────┐
-   │                            MyAgent.run()                              │
-   │                        (bucle del agente, M1)                        │
-   │                                                                       │
-   │   messages = [{"role":"user", "content": user_message}]              │
-   │   repetir (hasta max_iterations):                                     │
-   │     1. resp = self._llm.chat(messages, tools=schemas, system)  ──────┼──┐
-   │     2. ¿resp.tool_calls vacío?                                        │  │
-   │          SÍ  -> return AgentResult(answer=resp.content, steps)        │  │
-   │          NO  -> por cada tool_call:                                   │  │
-   │                  - _execute_tool_call() -> AgentStep + salida         │  │
-   │                  - append {"role":"tool", content: salida}            │  │
-   └───────────────────┬─────────────────────────────────────────────────┘  │
-                       │                                                       │
-       register_tool   │                                          chat(...)   │
-                       ▼                                                       ▼
-        ┌──────────────────────────────┐                  ┌──────────────────────────────┐
-        │   self._tools   (name->fn)    │                  │          LLMClient            │
-        │   self._schemas (name->schema)│                  │   (FIJO, mia_agents)          │
-        └──────────────┬───────────────┘                  │  to_llm_spec() por cada tool  │
-                       │                                   │  Bedrock (Converse) / Ollama  │
-                       │ tool(**kwargs)                    │  / MockLLMClient en tests     │
-                       ▼                                   └──────────────────────────────┘
-        ┌──────────────────────────────┐
-        │  Herramientas (callables)     │
-        │  - calculator                 │
-        │  - file_reader                │
-        │  - word_counter               │
-        └──────────────────────────────┘
-```
 
-**Flujo en una frase:** `build_agent` arma el agente y le registra las
-herramientas; `run` mantiene la conversación con el LLM a través del
-`LLMClient`, y cuando el modelo pide una herramienta el agente la ejecuta
-localmente y le devuelve el resultado, hasta que el modelo responde con
-texto final.
+El esquema separa dos caminos que el agente necesita coordinar para poder usar tools.
 
----
+Por un lado está el camino de los **schemas**. Cuando se registran las tools, el agente guarda en `self._schemas` las descripciones estructuradas de cada herramienta: nombre, descripción y parámetros esperados. Esos schemas se envían al cliente LLM en `chat(tools=...)` para que el modelo conozca qué tools existen y cómo debe pedir su ejecución.
 
-## 2. Diseño de la interfaz de herramientas
+Por otro lado está el camino de las **tools ejecutables**. El agente también guarda en `self._tools` las funciones Python reales asociadas a cada nombre de tool. Cuando el LLM responde con un `tool_call`, el agente usa el nombre de esa llamada para buscar la función correspondiente en `self._tools` y ejecutarla con los argumentos recibidos.
 
-### Definición de una herramienta
+La idea central es que el LLM no ejecuta código directamente. El LLM solo ve los schemas y, a partir de ellos, puede solicitar una tool. El agente recibe esa solicitud, ejecuta la función Python real y luego devuelve el resultado al LLM para que continúe el bucle o produzca una respuesta final.
 
-Cada herramienta es un **callable de Python** con tipos en la firma y un
-docstring. Ejemplo (`student_framework/tools/word_counter.py`):
+
+## 3. Diseño de la interfaz de herramientas
+
+En M1, una herramienta se modela como una función Python común, pero con una firma suficientemente descriptiva para que el framework pueda exponerla al LLM como una tool invocable.
+
+### 3.1 Herramientas como funciones Python
+
+Cada herramienta vive en `student_framework/tools/` y debe ser un callable que devuelva `str`.
+
+Ejemplo simplificado (`word_counter`):
 
 ```python
 def word_counter(
@@ -69,107 +87,152 @@ def word_counter(
 ) -> str:
     """Cuenta la cantidad de palabras en un texto y devuelve el resultado."""
     return str(len(text.split()))
+```
 
+La función es la implementación real que ejecuta el agente cuando el LLM solicita esa herramienta.
+
+### 3.2 Uso de `Annotated` y `Field`
+
+Los parámetros usan type hints y `Annotated[..., Field(description=...)]`.
+
+```python
+text: Annotated[
+    str,
+    Field(description="El texto cuyas palabras se desean contar."),
+]
+```
+
+Esto cumple dos objetivos:
+
+- indicar el tipo esperado del argumento;
+- describir el significado del argumento para el LLM.
+
+Estas descripciones influyen en la capacidad del modelo para elegir la herramienta correcta y construir argumentos válidos.
+
+### 3.3 Generación del schema con `ToolSchema.from_callable`
+
+Cada herramienta define también su schema:
+
+```python
 word_counter_schema = ToolSchema.from_callable(word_counter)
 ```
 
-- El **docstring** se convierte en la `description` de la herramienta para el LLM.
-- Los **tipos** + `Annotated[..., Field(description=...)]` definen el JSON
-  Schema de los argumentos. **No escribimos `parameters={...}` a mano:**
-  `ToolSchema.from_callable(fn)` lo deriva de la firma.
+`ToolSchema.from_callable` inspecciona la función y deriva:
 
-### Qué guarda `register_tool`
+- `name`: el nombre de la función;
+- `description`: el docstring;
+- `parameters`: un JSON Schema generado a partir de la firma, los tipos y los `Field`.
+
+De esta forma no escribimos JSON Schema manualmente. El contrato de la herramienta queda derivado del código Python.
+
+### 3.4 Registro de herramientas
+
+El agente mantiene dos diccionarios internos:
 
 ```python
 def register_tool(self, tool, schema) -> None:
-    self._tools[schema.name] = tool       # name -> callable a ejecutar
-    self._schemas[schema.name] = schema   # name -> ToolSchema a exponer al LLM
+    self._tools[schema.name] = tool
+    self._schemas[schema.name] = schema
 ```
 
-Dos diccionarios indexados por `schema.name`: uno con el callable (para
-**ejecutar**) y otro con el `ToolSchema` (para **describirle** la
-herramienta al LLM). La clave compartida es lo que permite, cuando llega
-un `tool_call`, encontrar el callable correcto por su nombre.
+`self._tools` guarda las funciones ejecutables:
 
-### Qué se pasa en `chat(tools=...)`
+```text
+"calculator" -> calculator
+"file_reader" -> file_reader
+"word_counter" -> word_counter
+```
 
-En cada llamada, `run` expone los esquemas registrados:
+`self._schemas` guarda los schemas que se le muestran al LLM:
+
+```text
+"calculator" -> calculator_schema
+"file_reader" -> file_reader_schema
+"word_counter" -> word_counter_schema
+```
+
+Ambos diccionarios usan `schema.name` como clave. Cuando el LLM devuelve un `tool_call` con un nombre, el agente usa esa clave para encontrar el callable correspondiente.
+
+### 3.5 Exposición de herramientas al LLM
+
+En cada vuelta del loop, `run` llama al cliente LLM pasando los schemas registrados:
 
 ```python
-resp = self._llm.chat(
+response = self._llm.chat(
     messages=messages,
-    tools=list(self._schemas.values()) if self._schemas else None,
+    tools=list(self._schemas.values()),
     system=self._system,
 )
 ```
 
-Se pasan los objetos `ToolSchema` directamente (no dicts).
+El agente no le pasa funciones Python al LLM. Le pasa descripciones estructuradas (`ToolSchema`) para que el modelo sepa qué herramientas existen, cuándo usarlas y qué argumentos debe emitir.
 
-### Qué hace el `LLMClient` fijo con cada esquema
+### 3.6 Traducción del schema en `LLMClient`
 
-El `LLMClient` (FIJO) traduce cada `ToolSchema` al formato nativo del
-proveedor: llama `to_llm_spec()` (que devuelve `name`/`description`/
-`parameters`) y lo envuelve según corresponda —
-`{"toolSpec": {"name", "description", "inputSchema": {"json": ...}}}` para
-Bedrock (API Converse) o `{"type": "function", "function": {...}}` para
-Ollama. **El agente nunca sabe qué proveedor hay detrás**: solo depende
-del método `chat(...)`. Por eso los tests pueden inyectar un
-`MockLLMClient` y el código del agente funciona sin cambios (y por eso no
-hay conflicto si una integrante usa Bedrock y la otra Ollama).
+`LLMClient` pertenece al framework fijo (`mia_agents`) y adapta cada `ToolSchema` al proveedor configurado.
 
----
+Internamente, cada schema puede convertirse con:
 
-## 3. Cómo termina el bucle
+```python
+schema.to_llm_spec()
+```
 
-El bucle de `run` tiene **dos condiciones de salida**:
+Eso produce una estructura con:
 
-1. **Respuesta final (caso normal).** Cuando el LLM devuelve texto **sin**
-   `tool_calls`, ese `content` es la respuesta y se devuelve
-   inmediatamente en `AgentResult.answer`. Si no hubo herramientas,
-   `steps` queda vacío y el LLM se llamó una sola vez.
+```text
+name
+description
+parameters
+```
 
-2. **Tope `max_iterations` (corte de seguridad).** El `for _ in
-   range(self._max_iterations)` garantiza que **nunca** se llame a `chat`
-   más de `max_iterations` veces (por defecto 10). Si el modelo se queda
-   pidiendo herramientas indefinidamente, al agotar las iteraciones el
-   bucle sale y `run` devuelve igualmente un `AgentResult` **válido** con
-   `answer=""`, los `steps` acumulados y un `error` explicando que se
-   alcanzó el límite. Así se evitan los bucles infinitos sin lanzar
-   excepciones.
+Luego el provider la traduce al formato correspondiente:
 
-En cada vuelta en la que el modelo pide herramientas:
-- Se agrega el turno del asistente (con sus `tool_calls`) al historial.
-- Por cada `tool_call` se ejecuta el callable y se registra **un**
-  `AgentStep` (`tool_name`, `tool_input`, `tool_output`, `error`).
-- El resultado se vuelca como mensaje `role: "tool"`, de modo que aparece
-  en la **siguiente** llamada a `chat` (realimentación al LLM).
+- Ollama usa una estructura tipo `{"type": "function", "function": ...}`;
+- Bedrock Converse usa una estructura tipo `{"toolSpec": ...}`;
+- en tests, `MockLLMClient` recibe los schemas directamente.
 
-**Robustez:** `_execute_tool_call` nunca lanza excepción. Ante argumentos
-JSON inválidos, una herramienta inexistente (alucinación del modelo) o un
-fallo del callable, devuelve un `AgentStep` con `error` no nulo y el bucle
-continúa. `run` siempre devuelve un `AgentResult`.
+Gracias a esta separación, `MyAgent` no depende de un proveedor concreto. El agente solo sabe llamar a `chat(...)` y ejecutar herramientas cuando recibe `tool_calls`.
 
----
+## 4. Terminación del bucle y manejo de errores
 
-## 4. Limitaciones conocidas
+El método `run` implementa el bucle del agente para una única interacción. En M1 no hay memoria persistente entre llamadas: cada ejecución arranca con un historial nuevo que contiene el mensaje del usuario.
 
-- **Sin estado entre llamadas (por diseño en M1).** Cada `run` arranca con
-  un historial nuevo; no hay memoria conversacional multiturno. Eso llega
-  en M2 (junto con `max_history_messages`, que en M1 se acepta pero se
-  ignora).
-- **`structured_call` no implementado.** Queda como stub
-  (`NotImplementedError`); la salida estructurada con `final_result` y la
-  reparación con reintentos son parte de M2.
-- **Sin reintentos ante fallos transitorios del proveedor.** Si `chat`
-  lanza una excepción (red, API), `run` no la captura: eso es alcance de
-  M2.
-- **`file_reader` lee el archivo completo en memoria.** No hay límite de
-  tamaño ni streaming; para archivos muy grandes podría ser costoso. Solo
-  soporta texto UTF-8.
-- **La calculadora opera sobre dos operandos y un operador** (`+`, `-`,
-  `*`, `%`). No evalúa expresiones arbitrarias (decisión deliberada: sin
-  `eval`, por seguridad).
-- **Validación de argumentos limitada.** Se parsea el JSON del `tool_call`
-  y se invoca el callable con esos kwargs; no se validan los tipos contra
-  el esquema antes de ejecutar (la validación fuerte llega con
-  `structured_call` en M2).
+El bucle termina en dos casos:
+
+1. **Respuesta final del LLM.** Si `LLMClient.chat(...)` devuelve una respuesta sin `tool_calls`, el agente toma `response.content` como respuesta final y devuelve un `AgentResult`.
+2. **Límite de iteraciones.** Si el modelo sigue pidiendo herramientas y no produce una respuesta final, el agente corta al alcanzar `max_iterations`. En ese caso devuelve un `AgentResult` válido con los `steps` acumulados y un error global.
+
+Los errores de herramientas se registran a nivel de `AgentStep.error`. Por ejemplo: argumentos JSON inválidos, una herramienta inexistente o una excepción dentro del callable. El agente no rompe el flujo por estos casos; devuelve la observación de error al LLM como mensaje `role="tool"` para que el modelo pueda responder o intentar reparar.
+
+`AgentResult.error` queda reservado para errores del flujo completo, como alcanzar el máximo de iteraciones sin respuesta final.
+
+## 5. Validación
+
+Además de los tests de conformidad provistos por el scaffold, agregamos escenarios propios en `tests/test_scenarios_m1.py`.
+
+Estos escenarios validan:
+
+- uso de más de una herramienta en una misma corrida;
+- realimentación del resultado de una tool al LLM;
+- lectura de archivos permitidos con `file_reader`;
+- robustez frente a herramientas inexistentes;
+- corte por `max_iterations`;
+- respuesta directa sin herramientas.
+
+Comandos utilizados:
+
+```bash
+python -m pytest tests/conformance/test_m1.py -v
+python -m pytest tests/test_tool_schema.py -v
+python -m pytest tests/test_scenarios_m1.py -v
+```
+
+## 6. Limitaciones conocidas
+
+- **Sin estado entre llamadas.** Cada `run` arranca con un historial nuevo; no hay memoria conversacional multiturno. Eso queda para M2 junto con `max_history_messages`.
+- **`structured_call` no implementado.** La salida estructurada con la herramienta sintética `final_result` y la reparación con reintentos forman parte de M2.
+- **Sin reintentos ante fallos transitorios del proveedor.** Si `chat` lanza una excepción por red, API o credenciales, `run` no implementa todavía una política de retry.
+- **`file_reader` tiene acceso acotado.** Por seguridad y para respetar la consigna de E/S restringida, solo lee archivos dentro de `sample_files/`. Esto evita que el agente lea rutas arbitrarias del sistema o archivos personales.
+- **`file_reader` lee archivos completos en memoria.** No hay streaming ni límite explícito de tamaño. Está pensado para archivos de texto pequeños en UTF-8.
+- **La calculadora opera sobre dos operandos y un operador.** No evalúa expresiones arbitrarias ni usa `eval`, por seguridad.
+- **Validación básica de argumentos.** Se verifica que `arguments` sea JSON válido y que represente un objeto, pero no se validan tipos contra el schema antes de ejecutar la herramienta.
