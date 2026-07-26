@@ -1,0 +1,60 @@
+# Comandos para probar el Milestone 2 sin AWS
+# Ejecutar desde la raíz del proyecto (agentes_vidal_podesta-main_25_julio/)
+
+
+# ------------------------------------------------------------
+# Setup inicial (solo la primera vez)
+# ------------------------------------------------------------
+
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+
+# ------------------------------------------------------------
+# Tests con mock (no requieren AWS)
+# ------------------------------------------------------------
+
+# Tests de conformidad M1 (profesores)
+python -m pytest tests/conformance/test_m1.py -v
+
+# Tests de conformidad M2 (profesores)
+python -m pytest tests/conformance/test_m2.py -v
+
+# Tests propios M1
+python -m pytest tests/test_scenarios_m1.py -v
+
+# Tests propios M2
+python -m pytest tests/test_scenarios_m2.py -v
+
+# Todos juntos
+python -m pytest tests/conformance/test_m1.py tests/conformance/test_m2.py \
+  tests/test_scenarios_m1.py tests/test_scenarios_m2.py tests/test_tool_schema.py -v
+
+
+# ------------------------------------------------------------
+# Verificar mensajes de error de las tools (no requieren AWS)
+# ------------------------------------------------------------
+
+python -c "
+from student_framework.tools.calculator import calculator
+from student_framework.tools.file_reader import file_reader
+from student_framework.tools.word_counter import word_counter
+
+print('=== CALCULADORA ===')
+print(calculator('veinte', 5, '+'))
+print(calculator(10, 0, '%'))
+print(calculator(10, 5, '/'))
+
+print()
+print('=== LECTOR DE ARCHIVOS ===')
+print(file_reader(''))
+print(file_reader('/etc/passwd'))
+print(file_reader('../escape'))
+print(file_reader('no_existe.txt'))
+
+print()
+print('=== CONTADOR DE PALABRAS ===')
+print(word_counter(None))
+print(word_counter(42))
+"

@@ -17,8 +17,20 @@ from pydantic import ValidationError
 
 
 from mia_agents.protocols import LLMClient
-from mia_agents.types import AgentResult, AgentStep, ToolCall, ToolSchema
+from mia_agents.types import AgentResult, AgentStep, LLMResponse, ToolCall, ToolSchema
 from mia_agents.tool_schema import FINAL_RESULT_TOOL_NAME, final_result_tool_schema
+
+
+_MAX_LLM_RETRIES = 3
+_TRANSIENT_KEYWORDS = ("timeout", "timed out", "rate limit", "throttl", "503", "502", "504")
+
+
+def _is_transient_error(exc: Exception) -> bool:
+    """True cuando la excepción es probablemente transitoria y vale la pena reintentar."""
+    if isinstance(exc, (ConnectionError, TimeoutError, OSError)):
+        return True
+    msg = str(exc).lower()
+    return any(kw in msg for kw in _TRANSIENT_KEYWORDS)
 
 
 
@@ -75,6 +87,28 @@ class MyAgent:
         self._tools[schema.name] = tool
         self._schemas[schema.name] = schema
 
+
+    def _chat_with_retry(
+        self,
+        messages: list[dict[str, Any]],
+        tools: list[ToolSchema] | None,
+        system: str | None,
+    ) -> LLMResponse:
+        """Llama a self._llm.chat() reintentando ante errores transitorios.
+
+        Errores transitorios (timeout, rate limit, 5xx de red) se reintentan
+        hasta _MAX_LLM_RETRIES veces. Errores definitivos (argumentos inválidos,
+        autenticación, etc.) se propagan inmediatamente sin reintentar.
+        """
+        for attempt in range(_MAX_LLM_RETRIES + 1):
+            try:
+                return self._llm.chat(messages=messages, tools=tools, system=system)
+            except Exception as exc:
+                is_last_attempt = attempt >= _MAX_LLM_RETRIES
+                if is_last_attempt or not _is_transient_error(exc):
+                    raise
+        # Nunca se alcanza; satisface al type checker.
+        raise RuntimeError("unreachable")
 
     def _build_sliding_window(
         self,
@@ -172,7 +206,7 @@ class MyAgent:
             
             messages_for_llm = self._build_sliding_window(messages)
 
-            response = self._llm.chat(
+            response = self._chat_with_retry(
                 messages=messages_for_llm,
                 tools=list(self._schemas.values()) if self._schemas else None,
                 system=self._system,
@@ -375,9 +409,9 @@ class MyAgent:
 
         # Intento inicial + cantidad maxima de reparaciones permitidas.
         for attempt in range(max_repair_attempts + 1):
-            response = self._llm.chat(
+            response = self._chat_with_retry(
                 messages=messages,
-                # En cada intento ofrecemos solamente final_result (pero messagges va guardando el historial).
+                # En cada intento ofrecemos solamente final_result (pero messages va guardando el historial).
                 tools=[final_result_schema],
                 system=self._system,
             )
