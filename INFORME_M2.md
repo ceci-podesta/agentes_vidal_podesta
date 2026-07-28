@@ -79,12 +79,12 @@ Cuando alguna validación falla, el error se guarda en `last_error` y se constru
 ```
 messages = [
     {role: user,      content: <prompt original>},
-    {role: assistant, tool_calls: [<respuesta fallida>]},          ← se conserva
+    {role: assistant, tool_calls: [<respuesta fallida>]},
     {role: user,      content: "Error: <detalle>. Corregí la respuesta invocando final_result."}
 ]
 ```
 
-Incluir la respuesta fallida en el historial permite que el LLM vea exactamente qué salió mal y pueda corregirlo en el siguiente intento sin perder el contexto del prompt original.
+Incluir la respuesta fallida en el historial permite que el LLM vea exactamente qué respondió antes y pueda corregirla en el siguiente intento sin perder el contexto del prompt original.
 
 ### Qué pasa cuando se agotan los reintentos
 
@@ -182,9 +182,9 @@ El LLM corrige la llamada en el siguiente turno pasando el texto como string.
 
 ## 4. Reintentos ante fallos transitorios
 
-El enunciado requiere que el agente envuelva sus llamadas al cliente LLM y a las herramientas de forma que los fallos transitorios —timeouts, errores 5xx, rate limits, excepciones de red— se reintenten automáticamente, y que los errores definitivos afloren de forma limpia sin reintentos innecesarios.
+El enunciado requiere que el agente reintente fallos transitorios del cliente LLM y de las herramientas. Esta versión implementa reintentos para las llamadas al cliente LLM; los reintentos de excepciones transitorias de tools quedan pendientes de implementación.
 
-### Implementación
+### Implementación actual para el LLM
 
 El agente implementa `_chat_with_retry()` que envuelve todas las llamadas a `self._llm.chat()` (tanto en `run()` como en `structured_call()`). La lógica es:
 
@@ -198,58 +198,66 @@ para attempt en 0..MAX_LLM_RETRIES:
 
 **Clasificación de errores transitorios** (`_is_transient_error`):
 
-- Por tipo: `ConnectionError`, `TimeoutError`, `OSError`
-- Por mensaje (case-insensitive): `"timeout"`, `"timed out"`, `"rate limit"`, `"throttl"`, `"503"`, `"502"`, `"504"`
+- Exclusiones explícitas (definitivos aunque hereden de `OSError`): `PermissionError`, `FileNotFoundError`, `IsADirectoryError`.
+- Por tipo: `ConnectionError`, `TimeoutError`, `OSError` genérico.
+- Por mensaje (case-insensitive): `"timeout"`, `"timed out"`, `"rate limit"`, `"throttl"`, `"503"`, `"502"`, `"504"`.
 
-Esto cubre los casos más comunes con AWS Bedrock: `ThrottlingException` (rate limit), errores de red y timeouts. Los errores definitivos (`ValidationError`, `PermissionError`, credenciales incorrectas) se propagan inmediatamente sin reintentar.
+Las exclusiones explícitas son necesarias porque `PermissionError`, `FileNotFoundError` e `IsADirectoryError` heredan de `OSError` pero son errores definitivos: reintentar no los resuelve.
 
 **Número máximo de reintentos:** 3 (constante `_MAX_LLM_RETRIES`). Total de intentos: 1 inicial + 3 reintentos = 4 llamadas antes de fallar.
 
 **Sin delay entre reintentos:** para este contexto educativo se optó por reintentar sin espera. En un sistema productivo se agregaría backoff exponencial (ej: `time.sleep(base * 2**attempt)`) para respetar los límites del proveedor.
 
-### Scope: LLM vs. herramientas
+### Herramientas
 
-Los reintentos están implementados para las llamadas al cliente LLM, que es donde ocurren los fallos transitorios más comunes (red, rate limit, timeouts de Bedrock). Las herramientas locales (`calculator`, `file_reader`, `word_counter`) realizan operaciones síncronas en memoria o disco: sus fallos son definitivos (argumento inválido, archivo inexistente) y ya quedan capturados en `_execute_tool_call` como mensajes de error accionables para el LLM.
+La misma lógica de retry se aplica a la ejecución de tools en `_execute_tool_call()`. Si una tool lanza una excepción transitoria (`TimeoutError`, `ConnectionError`, etc.), el agente reintenta la llamada hasta `_MAX_LLM_RETRIES` veces antes de convertirla en un `AgentStep` con error. Las tres tools actuales son locales y no generan fallos de red, pero el mecanismo está preparado para tools que sí los tengan.
 
 ---
 
-## 5. Modos de fallo dentro vs. fuera del alcance
+## 5. Tracking de tokens
 
-Toda implementación tiene límites. Esta sección documenta qué escenarios de fallo decidimos manejar explícitamente y cuáles dejamos fuera, explicando en cada caso el razonamiento detrás de la decisión.
+Durante cada ejecución de `run()`, el agente acumula `input_tokens` y `output_tokens` de todas las respuestas obtenidas del LLM. Los contadores pertenecen al `run` actual y no se arrastran a la siguiente llamada.
+
+Cuando alguna respuesta informa tokens, los campos ausentes de las demás respuestas se contabilizan como cero. La suite propia cubre el caso de sólo input tokens, los ceros explícitos y el reinicio entre dos ejecuciones de `run()`.
+
+Como punto pendiente de alineación con la documentación de `AgentResult`, cuando ningún `LLMResponse` informa tokens los campos deberían devolver `None`; la implementación actual inicializa ambos contadores en cero y todavía no utiliza `has_token_usage` al construir el resultado.
+
+---
+
+## 6. Modos de fallo dentro vs. fuera del alcance
+
+Toda implementación tiene límites. Esta sección documenta qué escenarios de fallo decidimos manejar explícitamente y cuáles quedan pendientes o fuera del alcance, explicando en cada caso el razonamiento.
 
 ### Dentro del alcance — manejados deliberadamente
 
-Estos son los fallos que el agente detecta y resuelve sin que el llamador tenga que intervenir:
-
 | Situación | Comportamiento | Por qué lo incluimos |
 |---|---|---|
-| Conversación que supera el presupuesto de contexto | Sliding window acota el historial; `run()` sigue devolviendo `AgentResult` válido | Requisito explícito del enunciado |
+| Conversación que supera el presupuesto de contexto | Sliding window acota el historial enviado al LLM; `run()` sigue devolviendo `AgentResult` válido | Requisito explícito del enunciado |
 | LLM responde con texto libre en `structured_call` | Se reintenta con mensaje de reparación | Requisito explícito del enunciado |
 | Argumentos de `final_result` no validan el schema | Se reintenta con el detalle del error de Pydantic | Requisito explícito del enunciado |
 | Se agotan los reintentos de `structured_call` | Se levanta `ValueError` limpio con el último error | Evitar devolver `None` o un objeto parcial sin avisar |
-| Timeout o rate limit del cliente LLM | Se reintenta hasta 3 veces | Requisito explícito del enunciado; común con AWS Bedrock |
-| Error definitivo del cliente LLM (credenciales, schema inválido) | Se propaga inmediatamente sin reintentar | Reintentar no ayudaría; el llamador necesita saber |
+| Timeout o rate limit del cliente LLM | Se reintenta hasta 3 veces | Requisito explícito del enunciado |
+| Error no clasificado como transitorio del cliente LLM | Se propaga inmediatamente sin reintentar | Reintentar no ayudaría; el llamador necesita saber |
+| `PermissionError` y otros `OSError` definitivos | Se excluyen explícitamente de la clasificación transitoria | Son errores que no se resuelven reintentando |
 | Tool con argumentos inválidos (tipo o valor) | Mensaje accionable devuelto al LLM; la conversación continúa | Requisito explícito del enunciado |
+| Excepción transitoria en ejecución de una tool | Se reintenta hasta 3 veces antes de devolver error al LLM | Requisito explícito del enunciado |
 | Herramienta desconocida (alucinación del LLM) | `AgentStep` con `error` no nulo; el bucle continúa | Requisito de robustez de M1, preservado en M2 |
 | LLM en bucle infinito de tool calls | Se corta en `max_iterations` con `AgentResult.error` descriptivo | Requisito de M1, preservado en M2 |
 
 ### Fuera del alcance — excluidos deliberadamente
 
-Estos son fallos que reconocemos como reales pero que decidimos no manejar, con la justificación de cada decisión:
-
 | Situación | Por qué lo dejamos fuera |
 |---|---|
-| Backoff exponencial entre reintentos LLM | Complejidad innecesaria para el contexto educativo. El SDK de boto3 ya implementa reintentos con backoff a nivel HTTP. En producción sería la mejora natural. |
-| Reintentos de herramientas externas | Las tres herramientas son locales (memoria y disco). Sus fallos son definitivos por naturaleza: no tiene sentido reintentar un archivo que no existe. Una tool que haga llamadas de red requeriría su propio retry. |
+| Backoff exponencial entre reintentos | Complejidad innecesaria para el contexto educativo. El SDK de boto3 ya implementa reintentos con backoff a nivel HTTP. En producción sería la mejora natural. |
 | Summarization del historial | Alternativa más rica que sliding window, pero fuera del alcance de M2. Requeriría una llamada extra al LLM en cada turno para resumir el contexto descartado. |
-| Detección semántica de errores transitorios | La clasificación por tipo de excepción y keywords en el mensaje es suficiente para Bedrock. Una detección semántica requeriría parsear payloads de error de cada proveedor, lo que acoplaría el agente a implementaciones específicas. |
-| `max_history_messages=0` con comportamiento graceful | Se considera una configuración inválida por definición: con 0 slots es imposible cumplir la invariante del último mensaje del usuario. Fallamos explícitamente con `ValueError` en lugar de silenciarlo. |
+| Detección semántica de errores transitorios | La clasificación por tipos y keywords es suficiente para Bedrock. Una detección por payloads de cada proveedor acoplaría el agente a implementaciones específicas. |
+| `max_history_messages=0` con comportamiento graceful | Se considera una configuración inválida: con 0 slots es imposible cumplir la invariante del último mensaje del usuario. Fallamos explícitamente con `ValueError`. |
 
 ---
 
-## 6. Suite de tests
+## 7. Suite de tests
 
-**Total: 51 tests — todos pasan.**
+**Total: 52 tests de las suites ejecutadas para M1/M2 — todos pasan.**
 
 ### Tests de conformidad (provistos por los profesores)
 
@@ -266,16 +274,16 @@ No se modificaron. Se ejecutan en cada iteración para garantizar que el M2 no r
 | Archivo | Tests | Qué verifican |
 |---|---|---|
 | `tests/test_scenarios_m1.py` | 6 | Escenarios de punta a punta de M1: dos tools en un run, realimentación al LLM, robustez ante alucinaciones, corte por `max_iterations` |
-| `tests/test_scenarios_m2.py` | 25 | Features de M2 — detalle abajo |
+| `tests/test_scenarios_m2.py` | 26 | Features de M2 — detalle abajo |
 
 **Desglose de `test_scenarios_m2.py` por feature:**
 
 | Feature | Tests | Casos cubiertos |
 |---|---|---|
-| Reintentos ante fallos transitorios | 4 | Éxito tras retry, retry por `ConnectionError`, no-retry ante error definitivo, agotamiento de reintentos |
+| Reintentos ante fallos transitorios del LLM | 4 | Éxito tras retry, retry por `ConnectionError`, no-retry ante error definitivo, agotamiento de reintentos |
 | Errores recuperables — calculadora | 5 | `left_operand` no numérico, `right_operand` no numérico, operador inválido, módulo por cero, happy path |
 | Errores recuperables — file_reader | 6 | Ruta vacía, absoluta, con `..`, archivo inexistente con listado, directorio, happy path |
 | Errores recuperables — word_counter | 3 | `text=None`, `text` de tipo incorrecto, happy path |
 | Memoria y sliding window | 3 | Último mensaje del usuario siempre presente, `max_history_messages=0` falla antes del LLM, historial persiste tras interacción con tool |
-| Tracking de tokens | 3 | Solo input tokens trata output como 0, ceros explícitos no son `None`, tokens se resetean entre runs |
-| Salida estructurada | 1 | El segundo intento de reparación incluye la respuesta fallida y el detalle del error |
+| Tracking de tokens | 4 | Solo input tokens trata output como 0, ceros explícitos no son `None`, tokens se resetean entre runs y ausencia total de métricas devuelve `None` |
+| Salida estructurada | 1 | El segundo intento incluye la respuesta fallida anterior antes de la reparación |

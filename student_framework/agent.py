@@ -27,6 +27,11 @@ _TRANSIENT_KEYWORDS = ("timeout", "timed out", "rate limit", "throttl", "503", "
 
 def _is_transient_error(exc: Exception) -> bool:
     """True cuando la excepción es probablemente transitoria y vale la pena reintentar."""
+    # Subtipos de OSError que son definitivos: excluirlos antes del check general,
+    # ya que PermissionError, FileNotFoundError e IsADirectoryError heredan de OSError
+    # pero no se resuelven reintentando.
+    if isinstance(exc, (PermissionError, FileNotFoundError, IsADirectoryError)):
+        return False
     if isinstance(exc, (ConnectionError, TimeoutError, OSError)):
         return True
     msg = str(exc).lower()
@@ -255,8 +260,14 @@ class MyAgent:
                 return AgentResult(
                     answer=response.content or "",
                     steps=steps,
-                    input_tokens=total_input_tokens,
-                    output_tokens=total_output_tokens,
+                    # M2: 0 significa "el proveedor reportó cero"; None,
+                    # "el proveedor no informó uso de tokens".
+                    input_tokens=(
+                        total_input_tokens if has_token_usage else None
+                    ),
+                    output_tokens=(
+                        total_output_tokens if has_token_usage else None
+                    ),
                 )
 
 
@@ -303,8 +314,10 @@ class MyAgent:
                 f"Se alcanzó el máximo de iteraciones ({self._max_iterations}) "
                 "sin que el modelo produjera una respuesta final."
             ),
-            input_tokens=total_input_tokens,
-            output_tokens=total_output_tokens,
+            # M2: aplicamos la misma convención si el bucle terminó por
+            # max_iterations en vez de terminar con una respuesta final.
+            input_tokens=total_input_tokens if has_token_usage else None,
+            output_tokens=total_output_tokens if has_token_usage else None,
         )
 
 
@@ -346,15 +359,19 @@ class MyAgent:
                 error,
             )
 
-        # 3. Ejecutar el callable con los kwargs parseados.
-        try:
-            output = tool(**kwargs)
-        except Exception as exc:
-            error = f"Error al ejecutar '{name}': {exc}"
-            return (
-                AgentStep(name, raw_arguments, None, error=error),
-                error,
-            )
+        # 3. Ejecutar el callable con retry ante errores transitorios.
+        for attempt in range(_MAX_LLM_RETRIES + 1):
+            try:
+                output = tool(**kwargs)
+                break
+            except Exception as exc:
+                is_last_attempt = attempt >= _MAX_LLM_RETRIES
+                if is_last_attempt or not _is_transient_error(exc):
+                    error = f"Error al ejecutar '{name}': {exc}"
+                    return (
+                        AgentStep(name, raw_arguments, None, error=error),
+                        error,
+                    )
 
         output_str = output if isinstance(output, str) else str(output)
         return (

@@ -11,8 +11,10 @@ Cubren los comportamientos implementados por María:
 from __future__ import annotations
 
 import json
+from typing import Annotated
 
 import pytest
+from pydantic import Field
 
 from mia_agents.testing import MockLLMClient
 from mia_agents.tool_schema import FINAL_RESULT_TOOL_NAME
@@ -91,6 +93,51 @@ def test_retry_exhaustion_re_raises() -> None:
 
     # 1 intento inicial + 3 reintentos = 4 llamadas al LLM.
     assert mock.call_count == 4
+
+
+def test_permission_error_is_not_retried() -> None:
+    """PermissionError hereda de OSError pero es definitivo: no debe reintentarse."""
+    from student_framework.agent import _is_transient_error
+
+    assert not _is_transient_error(PermissionError("acceso denegado"))
+    assert not _is_transient_error(FileNotFoundError("no existe"))
+    assert not _is_transient_error(IsADirectoryError("es un directorio"))
+    # OSError genérico sí es transitorio
+    assert _is_transient_error(OSError("connection reset"))
+
+
+def test_tool_retries_on_transient_exception() -> None:
+    """Una tool que lanza TimeoutError debe reintentarse antes de devolver error."""
+    from mia_agents.types import ToolSchema
+
+    call_count = 0
+
+    def flaky_tool(
+        text: Annotated[str, Field(description="texto de prueba")],
+    ) -> str:
+        nonlocal call_count
+        call_count += 1
+        if call_count < 2:
+            raise TimeoutError("timeout simulado")
+        return "resultado tras reintento"
+
+    schema = ToolSchema.from_callable(flaky_tool)
+
+    mock = MockLLMClient([
+        LLMResponse(
+            content=None,
+            tool_calls=[ToolCall(id="c1", name=schema.name, arguments=json.dumps({"text": "x"}))],
+        ),
+        LLMResponse(content="listo"),
+    ])
+    agent = build_agent({"llm_client": mock})
+    agent.register_tool(flaky_tool, schema)
+
+    result = agent.run("usá la tool")
+
+    assert call_count == 2, "la tool debería haberse llamado dos veces: 1 fallida + 1 exitosa"
+    assert result.steps[0].error is None
+    assert result.steps[0].tool_output == "resultado tras reintento"
 
 
 # ===========================================================================
@@ -360,6 +407,19 @@ def test_tokens_reset_for_each_run() -> None:
         f"esperado 200, obtuvo {result2.input_tokens!r} — los tokens no deben acumularse entre runs"
     )
     assert result2.output_tokens == 30
+
+
+def test_missing_tokens_are_none_when_provider_does_not_report_usage() -> None:
+    """Sin reporte del proveedor, los tokens quedan como dato no disponible."""
+    mock = MockLLMClient([
+        LLMResponse(content="respuesta sin métricas de tokens"),
+    ])
+    agent = build_agent({"llm_client": mock})
+
+    result = agent.run("algo")
+
+    assert result.input_tokens is None
+    assert result.output_tokens is None
 
 
 # ===========================================================================
