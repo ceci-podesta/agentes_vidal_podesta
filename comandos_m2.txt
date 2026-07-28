@@ -1,0 +1,76 @@
+# Comandos útiles para Milestone 2
+# Ejecutar desde la raíz del proyecto (agentes_vidal_podesta-main_25_julio/)
+
+
+# ------------------------------------------------------------
+# Setup inicial (solo la primera vez)
+# ------------------------------------------------------------
+
+# Crear entorno virtual
+python3 -m venv .venv
+
+# Activar entorno virtual
+source .venv/bin/activate
+
+# Instalar dependencias
+pip install -r requirements.txt
+
+
+# ------------------------------------------------------------
+# Configurar Bedrock (cada vez que abrís una terminal nueva)
+# ------------------------------------------------------------
+
+export AWS_REGION="us-east-2"
+export BEDROCK_MODEL_ID="amazon.nova-lite-v1:0"
+export AWS_ACCESS_KEY_ID="tu-access-key"
+export AWS_SECRET_ACCESS_KEY="tu-secret-key"
+# export AWS_SESSION_TOKEN="tu-session-token"   # solo si usás credenciales temporales
+
+# Verificar que Bedrock responde
+python scripts/bedrock_llm_smoke.py
+
+
+# ------------------------------------------------------------
+# Tests (no requieren Bedrock, usan mock — correr siempre)
+# ------------------------------------------------------------
+
+# Tests de conformidad M1 (provistos por los profesores)
+python -m pytest tests/conformance/test_m1.py -v
+
+# Tests de conformidad M2 (provistos por los profesores)
+python -m pytest tests/conformance/test_m2.py -v
+
+# Tests propios del grupo M1
+python -m pytest tests/test_scenarios_m1.py -v
+
+# Tests propios del grupo M2
+python -m pytest tests/test_scenarios_m2.py -v
+
+# Todos los tests de una sola vez
+python -m pytest tests/conformance/test_m1.py tests/conformance/test_m2.py \
+  tests/test_scenarios_m1.py tests/test_scenarios_m2.py tests/test_tool_schema.py -v
+
+
+# ------------------------------------------------------------
+# Prueba manual de features M2 con Bedrock real (~3-5 llamadas)
+# ------------------------------------------------------------
+
+# Prueba statefulness + structured_call + errores recuperables en tools
+python scripts/prueba_m2.py
+
+
+# ------------------------------------------------------------
+# Pruebas manuales individuales con Bedrock (de M1, siguen funcionando)
+# ------------------------------------------------------------
+
+python -m mia_agents.cli run --module student_framework \
+  --message "¿Cuánto es 17 * 23? Usá la calculadora."
+
+python -m mia_agents.cli run --module student_framework \
+  --message "¿Cuántas palabras tiene 'el agente usa herramientas para resolver tareas'?"
+
+python -m mia_agents.cli run --module student_framework \
+  --message "Leé el archivo hola_mundo.md y decime qué dice."
+
+python -m mia_agents.cli run --module student_framework \
+  --message "Leé lorem_ipsum.txt y contá cuántas palabras tiene."

@@ -11,6 +11,16 @@ def word_counter(
     text: Annotated[str, Field(description="El texto cuyas palabras se desean contar.")],
 ) -> str:
     """Cuenta la cantidad de palabras en un texto y devuelve el resultado."""
+    if text is None:
+        return (
+            "Error: el parámetro 'text' es nulo. "
+            "Se esperaba una cadena de texto, por ejemplo: 'hola mundo'."
+        )
+    if not isinstance(text, str):
+        return (
+            f"Error: el parámetro 'text' recibió un valor de tipo {type(text).__name__!r} "
+            f"({text!r}), que no es texto. Se esperaba una cadena de caracteres."
+        )
     words = text.split()
     return str(len(words))
 
