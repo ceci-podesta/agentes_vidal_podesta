@@ -1,7 +1,13 @@
 from datetime import datetime, timezone
 import json
 
-from eval.run import build_report, build_summary, save_report
+from eval.run import (
+    REPEATS_PER_SCENARIO,
+    build_pass_at_k_summary,
+    build_report,
+    build_summary,
+    save_report,
+)
 
 
 def _result(
@@ -130,4 +136,53 @@ def test_build_summary_includes_delegated_worker_metrics() -> None:
     assert summary["total_input_tokens"] == 60
     assert summary["total_output_tokens"] == 22
     assert summary["by_difficulty"]["extreme"]["workers_started"] == 2
+
+
+def test_build_pass_at_k_summary_groups_by_scenario_and_computes_rate() -> None:
+    results = [
+        _result("color-locks", "medium", True, 1.0, 10, 5, []),
+        _result("color-locks", "medium", False, 1.0, 10, 5, []),
+        _result("color-locks", "medium", True, 1.0, 10, 5, []),
+        _result("color-locks", "medium", True, 1.0, 10, 5, []),
+        _result("study-with-key", "easy", True, 1.0, 10, 5, []),
+    ]
+
+    pass_at_k = build_pass_at_k_summary(results)
+
+    assert pass_at_k["color-locks"]["attempts"] == 4
+    assert pass_at_k["color-locks"]["achieved"] == 3
+    assert pass_at_k["color-locks"]["success_rate"] == 0.75
+    assert pass_at_k["color-locks"]["resolved"] is True
+    assert pass_at_k["study-with-key"]["attempts"] == 1
+    assert pass_at_k["study-with-key"]["success_rate"] == 1.0
+
+
+def test_build_pass_at_k_summary_marks_unresolved_below_threshold() -> None:
+    results = [
+        _result("library-search", "hard", False, 1.0, 10, 5, []),
+        _result("library-search", "hard", False, 1.0, 10, 5, []),
+        _result("library-search", "hard", False, 1.0, 10, 5, []),
+        _result("library-search", "hard", True, 1.0, 10, 5, []),
+    ]
+
+    pass_at_k = build_pass_at_k_summary(results)
+
+    assert pass_at_k["library-search"]["success_rate"] == 0.25
+    assert pass_at_k["library-search"]["resolved"] is False
+
+
+def test_build_report_includes_pass_at_k_and_repeats_metadata() -> None:
+    results = [
+        _result("easy-case", "easy", True, 1.0, 3, 2, []),
+        _result("easy-case", "easy", True, 1.0, 3, 2, []),
+    ]
+    report = build_report(
+        results=results,
+        selected_scenario_ids=["easy-case"],
+        timestamp=datetime(2026, 8, 21, 12, 0, tzinfo=timezone.utc),
+    )
+
+    assert report["metadata"]["repeats_per_scenario"] == REPEATS_PER_SCENARIO
+    assert report["pass_at_k"]["easy-case"]["attempts"] == 2
+    assert report["pass_at_k"]["easy-case"]["resolved"] is True
 
