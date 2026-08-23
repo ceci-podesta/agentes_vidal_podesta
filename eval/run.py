@@ -72,10 +72,26 @@ PASS_AT_K_THRESHOLD = 0.5
 
 M3_AGENT_CONFIG = {
     "max_iterations": 25,
+    # `_build_sliding_window` (M2) recorta por cantidad de mensajes sin
+    # saber que un turno "assistant" con tool_calls y sus mensajes "tool"
+    # correspondientes deben viajar juntos. Con max_iterations=25 una
+    # partida larga puede acercarse al default de 50 y el recorte cae en
+    # medio de un grupo assistant+tool, lo que Bedrock rechaza
+    # (ValidationException: "toolResult blocks... exceeds... toolUse
+    # blocks"). El maximo teorico aca es ~101 mensajes; 200 da margen
+    # amplio para que el recorte practicamente nunca se dispare. No es un
+    # arreglo de la causa raiz (ver Limitaciones en INFORME_M3.md), es un
+    # workaround deliberado para no tocar agent.py (ya evaluado en M2).
+    "max_history_messages": 200,
     "max_repeated_failures": 1,
     "max_repeated_observations": 1,
     "observation_tool_names": {"look", "examine", "research_documents"},
     "use_m3_scratchpad": True,
+    # Activado tras el experimento planner vs ReAct puro (ver INFORME_M3.md):
+    # 3/3 en color-locks y 2/3 en office-sequence con planner, contra 2/5 y
+    # 2/5 sin el en el pass@k oficial. Para volver a ReAct puro sin planner,
+    # pasar config_overrides={"use_m3_planner": False} a run_scenario.
+    "use_m3_planner": True,
     "system_prompt": """
 Sos un agente que resuelve acertijos en un mundo interactivo para cumplir el
 objetivo indicado.
@@ -109,7 +125,9 @@ de salida sin una señal de que encaja.
 
 Para moverte, elegí únicamente entre las salidas indicadas en la observación más
 reciente. Si go devuelve un error, corregí la dirección según las salidas que
-informa ese error.
+informa ese error. Después de cada go exitoso ya no conocés las salidas de la
+sala nueva: tu próxima acción debe ser look, salvo que ya hayas observado esa
+sala en este mismo recorrido y recuerdes sus salidas con certeza.
 
 Después de cada resultado de una tool, actualizá tu plan. Si una acción falla,
 corregí la causa y no repitas exactamente la misma acción sin información nueva.
@@ -194,13 +212,20 @@ def select_scenarios(scenarios: list[Scenario]) -> list[Scenario]:
 def run_scenario(
     scenario: Scenario,
     llm_client: LLMClient | None = None,
+    config_overrides: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Ejecuta un escenario una vez y devuelve su registro evaluable."""
+    """Ejecuta un escenario una vez y devuelve su registro evaluable.
+
+    `config_overrides` permite pisar valores puntuales de `M3_AGENT_CONFIG`
+    (p. ej. `{"use_m3_planner": True}`) para experimentos A/B sin tocar la
+    configuracion oficial usada por `main()`.
+    """
     world = scenario.initial_world
     llm_client = llm_client or LLMClient.from_env()
     agent = build_agent(
         {
             **M3_AGENT_CONFIG,
+            **(config_overrides or {}),
             "llm_client": llm_client,
         }
     )
@@ -244,6 +269,7 @@ def run_scenario(
         "duration_seconds": duration_seconds,
         "agent_result": asdict(result),
         "delegation": research_diagnostics.as_dict(),
+        "plan_block": getattr(agent, "last_plan_block", None),
     }
 
 def _json_safe(value: Any) -> Any:

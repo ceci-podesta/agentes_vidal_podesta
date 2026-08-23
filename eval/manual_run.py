@@ -44,6 +44,10 @@ def _resolve_scenario(spec: str, scenarios_dir: Path):
 
 def print_trace(result: dict) -> None:
     print(f"# Escenario: {result['scenario']} ({result['difficulty']})")
+    plan_block = result.get("plan_block")
+    if plan_block:
+        print()
+        print(plan_block)
     print()
     for index, step in enumerate(result["agent_result"]["steps"], start=1):
         marker = " [ERROR]" if step.get("error") else ""
@@ -80,10 +84,19 @@ def main(argv: list[str] | None = None) -> int:
         default=str(SCENARIOS_DIR),
         help="Directorio donde buscar escenarios (por defecto: scenarios/).",
     )
+    parser.add_argument(
+        "--planner",
+        action="store_true",
+        help=(
+            "Activa el plan inicial (use_m3_planner=True) para este "
+            "escenario, sin tocar la config oficial de eval/run.py."
+        ),
+    )
     args = parser.parse_args(argv)
 
     scenario = _resolve_scenario(args.scenario, Path(args.scenarios_dir))
-    result = run_scenario(scenario)
+    config_overrides = {"use_m3_planner": True} if args.planner else None
+    result = run_scenario(scenario, config_overrides=config_overrides)
     print_trace(result)
 
     return 0 if result["goal_achieved"] else 1

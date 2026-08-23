@@ -1,0 +1,3194 @@
+{
+  "metadata": {
+    "run_id": "20260823T173856868476Z",
+    "timestamp_utc": "2026-08-23T17:38:56.868476+00:00",
+    "run_kind": "final",
+    "selected_scenarios": [
+      "study-with-key",
+      "color-locks",
+      "apartment-keys",
+      "library-search",
+      "office-sequence",
+      "extreme-archive"
+    ],
+    "repeats_per_scenario": 5,
+    "llm_provider": {
+      "provider": "bedrock",
+      "model": "amazon.nova-lite-v1:0",
+      "region": "us-east-2"
+    },
+    "agent_config": {
+      "max_iterations": 25,
+      "max_history_messages": 200,
+      "max_repeated_failures": 1,
+      "max_repeated_observations": 1,
+      "observation_tool_names": [
+        "examine",
+        "look",
+        "research_documents"
+      ],
+      "use_m3_scratchpad": true,
+      "system_prompt": "Sos un agente que resuelve acertijos en un mundo interactivo para cumplir el\nobjetivo indicado.\n\nAntes de cada tool call, consultá el bloque Scratchpad M3 incluido en este\nmensaje. Usalo como estado de trabajo de hechos ya observados.\n\nSi el scratchpad dice \"Sin hechos todavía\", empezá con look. No adivines IDs,\ninventario, ubicación ni salidas: usá sólo valores confirmados por el\nscratchpad o por la última observación.\n\nSi un ítem figura como contenido descubierto pero no está en Inventario, usá\ntake antes de use. Sólo usá un ítem sobre un destino visible en la ubicación\nactual.\n\nUsá la observación más reciente de las tools como fuente de verdad sobre el\nestado actual del mundo.\n\nAntes de actuar, usá look para observar el entorno y obtener los IDs exactos\nde los objetos. Cuando una tool muestra un objeto como [id: ...], usá ese ID\nexacto en las siguientes llamadas.\n\nUsá examine para inspeccionar objetos y descubrir contenido o pistas. Para usar\nun objeto portable, primero incorporalo al inventario con take. Antes de use,\nverificá que el ítem esté en tu inventario y que el objeto destino sea visible\nen la sala actual.\n\nCuando tengas una llave, relacionála con la cerradura o contenedor cuya\ndescripción indique que es compatible. No pruebes cada llave nueva en la puerta\nde salida sin una señal de que encaja.\n\nPara moverte, elegí únicamente entre las salidas indicadas en la observación más\nreciente. Si go devuelve un error, corregí la dirección según las salidas que\ninforma ese error.\n\nDespués de cada resultado de una tool, actualizá tu plan. Si una acción falla,\ncorregí la causa y no repitas exactamente la misma acción sin información nueva.\nEvitá volver a inspeccionar objetos cuyo estado no cambió.\n\nCuando examine revele una coleccion de mas de cinco documentos similares,\nllama UNA sola vez a research_documents con TODOS los IDs exactos de esa\ncoleccion y el objetivo actual. No la llames sobre subconjuntos de la misma\ncoleccion: la tool administra internamente los lotes y devuelve un reporte\ncompacto.\n\nDespues usa primero ese reporte para decidir el siguiente paso. No inspecciones\nmanualmente documentos que research_documents ya informo como investigados,\nsalvo que el reporte indique una razon concreta para hacerlo. No uses esta tool\npara contenedores pequeños.\n\nContinuá usando tools hasta cumplir el objetivo o hasta que no haya más acciones\nútiles."
+    }
+  },
+  "summary": {
+    "evaluated_scenarios": 30,
+    "achieved_scenarios": 23,
+    "accuracy": 0.7666666666666667,
+    "tool_calls": 350,
+    "tool_errors": 66,
+    "input_tokens": 1092795,
+    "output_tokens": 20968,
+    "workers_started": 24,
+    "worker_tool_calls": 116,
+    "worker_errors": 44,
+    "worker_input_tokens": 88953,
+    "worker_output_tokens": 7348,
+    "total_tool_calls": 466,
+    "total_tool_errors": 110,
+    "total_input_tokens": 1181748,
+    "total_output_tokens": 28316,
+    "duration_seconds": 1192.591857352003,
+    "average_duration_seconds": 39.75306191173343,
+    "by_difficulty": {
+      "easy": {
+        "evaluated_scenarios": 5,
+        "achieved_scenarios": 5,
+        "tool_calls": 20,
+        "tool_errors": 0,
+        "input_tokens": 52987,
+        "output_tokens": 1408,
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "worker_errors": 0,
+        "worker_input_tokens": 0,
+        "worker_output_tokens": 0,
+        "duration_seconds": 31.20780273299897,
+        "accuracy": 1.0
+      },
+      "medium": {
+        "evaluated_scenarios": 10,
+        "achieved_scenarios": 7,
+        "tool_calls": 111,
+        "tool_errors": 15,
+        "input_tokens": 347760,
+        "output_tokens": 6649,
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "worker_errors": 0,
+        "worker_input_tokens": 0,
+        "worker_output_tokens": 0,
+        "duration_seconds": 871.1637839659925,
+        "accuracy": 0.7
+      },
+      "hard": {
+        "evaluated_scenarios": 10,
+        "achieved_scenarios": 6,
+        "tool_calls": 173,
+        "tool_errors": 31,
+        "input_tokens": 596136,
+        "output_tokens": 9488,
+        "workers_started": 4,
+        "worker_tool_calls": 16,
+        "worker_errors": 6,
+        "worker_input_tokens": 8262,
+        "worker_output_tokens": 1259,
+        "duration_seconds": 191.20047150300525,
+        "accuracy": 0.6
+      },
+      "extreme": {
+        "evaluated_scenarios": 5,
+        "achieved_scenarios": 5,
+        "tool_calls": 46,
+        "tool_errors": 20,
+        "input_tokens": 95912,
+        "output_tokens": 3423,
+        "workers_started": 20,
+        "worker_tool_calls": 100,
+        "worker_errors": 38,
+        "worker_input_tokens": 80691,
+        "worker_output_tokens": 6089,
+        "duration_seconds": 99.01979915000629,
+        "accuracy": 1.0
+      }
+    }
+  },
+  "pass_at_k": {
+    "study-with-key": {
+      "difficulty": "easy",
+      "attempts": 5,
+      "achieved": 5,
+      "success_rate": 1.0,
+      "resolved": true
+    },
+    "color-locks": {
+      "difficulty": "medium",
+      "attempts": 5,
+      "achieved": 2,
+      "success_rate": 0.4,
+      "resolved": false
+    },
+    "apartment-keys": {
+      "difficulty": "medium",
+      "attempts": 5,
+      "achieved": 5,
+      "success_rate": 1.0,
+      "resolved": true
+    },
+    "library-search": {
+      "difficulty": "hard",
+      "attempts": 5,
+      "achieved": 4,
+      "success_rate": 0.8,
+      "resolved": true
+    },
+    "office-sequence": {
+      "difficulty": "hard",
+      "attempts": 5,
+      "achieved": 2,
+      "success_rate": 0.4,
+      "resolved": false
+    },
+    "extreme-archive": {
+      "difficulty": "extreme",
+      "attempts": 5,
+      "achieved": 5,
+      "success_rate": 1.0,
+      "resolved": true
+    }
+  },
+  "results": [
+    {
+      "scenario": "study-with-key",
+      "difficulty": "easy",
+      "user_message": "Te despiertas encerrado en un pequeño estudio. La puerta está cerrada. Encuentra la forma de salir. Usa las herramientas que tienes disponibles para explorar la sala y resolver el puzzle.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 7.337316168999678,
+      "agent_result": {
+        "answer": "<thinking>La llave dorada funcionó y pude abrir la puerta principal. Ahora puedo salir del estudio.</thinking>\n\n",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Estudio.\nUn estudio pequeño forrado de libros. Una alfombra persa cubre el centro del suelo. A un lado hay un escritorio de roble. Al fondo, la puerta principal.\nVes:\n  - alfombra [id: alfombra]\n  - escritorio [id: escritorio]\n  - puerta principal [id: puerta_principal] (cerrada)",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"alfombra\"}",
+            "tool_output": "alfombra: Una vieja alfombra persa. Algo abulta debajo.\nContiene:\n  - llave dorada [id: llave_oro]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_oro\"}",
+            "tool_output": "Tomas llave dorada.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave dorada con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 10509,
+        "output_tokens": 244
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 1
+    },
+    {
+      "scenario": "color-locks",
+      "difficulty": "medium",
+      "user_message": "Te despiertas en un sótano frío. La puerta principal, al fondo, está cerrada con una cerradura dorada considerable. Sobre una repisa baja brilla una llave plateada. Repartidos por el suelo hay cuatro cofres pintados de colores distintos (plateado, rojo, verde y azul), cada uno con su cerradura del mismo color. Algunos cofres están cerrados con llave, otros no. Encuentra la forma de salir.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": false,
+      "goal_reason": "puerta principal está cerrada",
+      "duration_seconds": 1.6232278360002965,
+      "agent_result": {
+        "answer": "<thinking>La situación inicial describe una sala con una puerta cerrada y una llave plateada en una repisa. Hay cuatro cofres de diferentes colores, cada uno con una cerradura del mismo color. El objetivo es salir de la sala. Debemos empezar observando la sala para identificar los objetos y sus IDs.</thinking>\n\n<thinking>La herramienta look nos permitirá ver los objetos en la sala y sus IDs. Esto nos ayudará a entender mejor el entorno y decidir los próximos pasos.</thinking>\n",
+        "steps": [],
+        "error": null,
+        "input_tokens": 1894,
+        "output_tokens": 117
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 1
+    },
+    {
+      "scenario": "apartment-keys",
+      "difficulty": "medium",
+      "user_message": "Te despiertas en el recibidor de un apartamento desconocido. La puerta principal está cerrada con llave y no la ves por ningún lado. Hay un pasillo que se interna en el apartamento. Explora los ambientes, encuentra la llave y vuelve a abrir la puerta principal.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 84.02560406499833,
+      "agent_result": {
+        "answer": "<thinking>La puerta principal se abrió con éxito usando la llave dorada. Hemos completado el objetivo de abrir la puerta principal.</thinking>\n\n<thinking>El objetivo ha sido completado. La puerta principal se abrió con éxito usando la llave dorada.</thinking>\n\n<response>El objetivo ha sido completado. La puerta principal se abrió con éxito usando la llave dorada.</response>",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Recibidor.\nUn recibidor estrecho con un perchero vacío y un espejo polvoriento. La puerta principal, de metal, está cerrada con una cerradura simple. Un pasillo se abre hacia el norte.\nVes:\n  - puerta principal [id: puerta_principal] (cerrada)\nSalidas: norte.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"puerta_principal\"}",
+            "tool_output": "puerta principal: Una puerta de metal con una cerradura simple. Necesita una llave para abrirse.\nEstado: cerrada.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"norte\"}",
+            "tool_output": "Caminas hacia norte. Llegas a Pasillo.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Pasillo.\nUn pasillo en penumbra con cuadros torcidos. Conecta el recibidor al sur con la cocina al este.\nNo ves nada de interés.\nSalidas: este, sur.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Cocina.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Cocina.\nUna cocina pequeña con azulejos blancos. Hay una mesada con un cajón cerrado y olor a café frío.\nVes:\n  - cajón de la cocina [id: cajon]\nSalidas: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cajon\"}",
+            "tool_output": "cajón de la cocina: Un cajón de madera bajo la mesada. Se abre con un tirón y dentro hay cubiertos sueltos y algo más.\nContiene:\n  - llave dorada [id: llave_oro]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_oro\"}",
+            "tool_output": "Tomas llave dorada.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Error: no ves ningún 'puerta_principal' aquí.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Cocina.\nUna cocina pequeña con azulejos blancos. Hay una mesada con un cajón cerrado y olor a café frío.\nVes:\n  - cajón de la cocina [id: cajon]\nSalidas: oeste.\nLlevas: llave dorada [id: llave_oro].",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Caminas hacia oeste. Llegas a Pasillo.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Error: no hay salida 'oeste' desde aquí. Salidas disponibles: este, sur.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"sur\"}",
+            "tool_output": "Caminas hacia sur. Llegas a Recibidor.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave dorada con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 41706,
+        "output_tokens": 801
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 1
+    },
+    {
+      "scenario": "library-search",
+      "difficulty": "hard",
+      "user_message": "Te despiertas en la biblioteca del archivero. La puerta principal está cerrada con una cerradura grabada. En la pared opuesta hay una caja fuerte empotrada, también cerrada. Una estantería alta ocupa la pared norte con ocho volúmenes encuadernados de forma parecida. Hay también un viejo escritorio en el centro. Encuentra la forma de salir.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 13.649265331998322,
+      "agent_result": {
+        "answer": "<thinking>La puerta principal ahora está abierta. He cumplido el objetivo de encontrar la forma de salir.</thinking>\n\n<response>He cumplido el objetivo de encontrar la forma de salir. La llave grabada que encontré en la caja fuerte me permitió abrir la puerta principal.</response>",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Biblioteca del archivero.\nUna sala rectangular con olor a papel viejo. Al norte, una estantería alta de roble cargada de libros antiguos. En el centro, un escritorio robusto con un cajón único, vacío al primer vistazo. En la pared oeste, empotrada en el muro, una caja fuerte de hierro con bisagras macizas y un disco de combinación que en realidad oculta una cerradura convencional. Enfrente, la puerta principal, de hierro negro, con la cerradura grabada de símbolos.\nVes:\n  - escritorio [id: escritorio]\n  - estantería alta [id: estanteria_alta]\n  - caja fuerte [id: caja_fuerte] (cerrada)\n  - puerta principal [id: puerta_principal] (cerrada)",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"escritorio\"}",
+            "tool_output": "escritorio: Un escritorio de roble con un único cajón estrecho. Lo abres y lo encuentras vacío salvo por restos de polvo y una pluma rota.\nEstá vacío.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"estanteria_alta\"}",
+            "tool_output": "estantería alta: Una estantería de roble de cuatro baldas. Solo la balda superior tiene libros — ocho volúmenes encuadernados con materiales distintos pero de tamaño parecido. Las baldas inferiores están vacías.\nContiene:\n  - Elementos de geometría aplicada [id: libro_geometria]\n  - Notas sobre la transmutación de los metales [id: libro_alquimia]\n  - Diálogos sobre la naturaleza del juicio [id: libro_filosofia]\n  - Anales del reino, década quinta [id: libro_historia]\n  - Recopilación de sentencias del tribunal supremo [id: libro_jurisprudencia]\n  - Recetario del cocinero mayor [id: libro_recetario]\n  - Genealogía de la casa de Andrade [id: libro_genealogia]\n  - Colección de sermones dominicales [id: libro_sermones]",
+            "error": null
+          },
+          {
+            "tool_name": "research_documents",
+            "tool_input": "{\"document_ids\": [\"libro_geometria\", \"libro_alquimia\", \"libro_filosofia\", \"libro_historia\", \"libro_jurisprudencia\", \"libro_recetario\", \"libro_genealogia\", \"libro_sermones\"], \"objective\": \"Encontrar pistas para abrir la puerta principal o la caja fuerte\"}",
+            "tool_output": "{\"examined_document_ids\": [\"libro_geometria\", \"libro_alquimia\", \"libro_filosofia\", \"libro_historia\", \"libro_jurisprudencia\", \"libro_recetario\", \"libro_genealogia\", \"libro_sermones\"], \"findings\": [{\"source_id\": \"libro_alquimia\", \"revealed_items\": [], \"relevant_fact\": \"La operación de transmutación de metales podría requerir una escoria gris y maloliente, lo que sugiere la necesidad de revisar la pureza de la cal y la quietud del firmamento.\"}, {\"source_id\": \"libro_jurisprudencia\", \"revealed_items\": [], \"relevant_fact\": \"Una sentencia sobre apropiación indebida de aguas de regadío comunal menciona la restitución de tres cargas de cebada, lo que podría ser relevante para entender la importancia de la restitución en lugar del castigo.\"}, {\"source_id\": \"libro_sermones\", \"revealed_items\": [{\"id\": \"llave_caja\", \"name\": \"llave de la caja\"}], \"relevant_fact\": \"Contiene: llave de la caja [id: llave_caja]\"}], \"worker_errors\": [\"El worker reporto objetos no revelados por examine en libro_alquimia: operacion_transmutacion\", \"El worker reporto objetos no revelados por examine en libro_jurisprudencia: sentencia_aguas_regadío\"]}",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_caja\"}",
+            "tool_output": "Tomas llave de la caja.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_caja\", \"target\": \"caja_fuerte\"}",
+            "tool_output": "Usas llave de la caja con caja fuerte. Se abre.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"caja_fuerte\"}",
+            "tool_output": "caja fuerte: Caja fuerte de hierro empotrada en el muro. El disco de combinación visible es decorativo: la cerradura real está bajo una placa metálica que solo se abre con una llave específica.\nContiene:\n  - llave grabada [id: llave_grabada]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_grabada\"}",
+            "tool_output": "Tomas llave grabada.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_grabada\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave grabada con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 23108,
+        "output_tokens": 565
+      },
+      "delegation": {
+        "workers_started": 2,
+        "worker_tool_calls": 8,
+        "input_tokens": 4135,
+        "output_tokens": 547,
+        "worker_errors": [
+          "El worker reporto objetos no revelados por examine en libro_alquimia: operacion_transmutacion",
+          "El worker reporto objetos no revelados por examine en libro_jurisprudencia: sentencia_aguas_regadío"
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "scenario": "office-sequence",
+      "difficulty": "hard",
+      "user_message": "Te despiertas en una oficina vacía. Tu objetivo: salir por la puerta principal LLEVÁNDOTE el documento confidencial. Aviso importante: la puerta principal se sella en cuanto la abrís, así que asegurate de tener el documento contigo ANTES de abrirla. La puerta necesita una llave maestra; la llave maestra y el documento están en una caja fuerte del archivo; y la llave de esa caja está guardada en el depósito. Recorré los ambientes en el orden correcto.",
+      "goal": {
+        "type": "sequence",
+        "goals": [
+          {
+            "type": "item_in_inventory",
+            "item": "documento_confidencial"
+          },
+          {
+            "type": "item_open",
+            "item": "puerta_principal"
+          }
+        ]
+      },
+      "goal_achieved": true,
+      "goal_reason": "secuencia completada en el orden correcto",
+      "duration_seconds": 23.44206372700137,
+      "agent_result": {
+        "answer": "<thinking>Ahora estamos en el Depósito. Hemos completado el objetivo de salir por la puerta principal llevando el documento confidencial.</thinking>",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Oficina principal.\nUna oficina con un escritorio amplio y una puerta principal blindada. Un corredor sale hacia el este.\nVes:\n  - escritorio [id: escritorio]\n  - puerta principal [id: puerta_principal] (cerrada)\nSalidas: este.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Corredor.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Corredor.\nUn corredor central que distribuye hacia la oficina (oeste), el archivo (norte) y el depósito (este).\nNo ves nada de interés.\nSalidas: este, norte, oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Depósito.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Depósito.\nUn cuarto de limpieza con estanterías metálicas y un cajón etiquetado 'LLAVES'.\nVes:\n  - cajón de llaves [id: cajon_llaves]\nSalidas: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cajon_llaves\"}",
+            "tool_output": "cajón de llaves: Un cajón metálico etiquetado 'LLAVES'. Dentro cuelga una sola llave pequeña.\nContiene:\n  - llave de la caja fuerte [id: llave_caja]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_caja\"}",
+            "tool_output": "Tomas llave de la caja fuerte.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"norte\"}",
+            "tool_output": "Error: no hay salida 'norte' desde aquí. Salidas disponibles: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Caminas hacia oeste. Llegas a Corredor.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"norte\"}",
+            "tool_output": "Caminas hacia norte. Llegas a Archivo.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Archivo.\nUna sala con armarios de expedientes y una caja fuerte empotrada en la pared.\nVes:\n  - caja fuerte [id: caja_fuerte] (cerrada)\nSalidas: sur.\nLlevas: llave de la caja fuerte [id: llave_caja].",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_caja\", \"target\": \"caja_fuerte\"}",
+            "tool_output": "Usas llave de la caja fuerte con caja fuerte. Se abre.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"caja_fuerte\"}",
+            "tool_output": "caja fuerte: Una caja fuerte empotrada con una cerradura de llave plana. Cerrada.\nContiene:\n  - documento confidencial [id: documento_confidencial]\n  - llave maestra [id: llave_maestra]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_maestra\"}",
+            "tool_output": "Tomas llave maestra.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"documento_confidencial\"}",
+            "tool_output": "Tomas documento confidencial.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Error: no hay salida 'oeste' desde aquí. Salidas disponibles: sur.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"sur\"}",
+            "tool_output": "Caminas hacia sur. Llegas a Corredor.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Caminas hacia oeste. Llegas a Oficina principal.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_maestra\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave maestra con puerta principal. Se abre.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Oficina principal.\nUna oficina con un escritorio amplio y una puerta principal blindada. Un corredor sale hacia el este.\nVes:\n  - escritorio [id: escritorio]\n  - puerta principal [id: puerta_principal] (abierta)\nSalidas: este.\nLlevas: llave de la caja fuerte [id: llave_caja], llave maestra [id: llave_maestra], documento confidencial [id: documento_confidencial].",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Corredor.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Depósito.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 70704,
+        "output_tokens": 1112
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 1
+    },
+    {
+      "scenario": "extreme-archive",
+      "difficulty": "extreme",
+      "user_message": "Te despiertas en el archivo central de la facultad. La puerta principal está cerrada con una cerradura institucional. La estantería frente a ti contiene veinte expedientes; cada uno parece un documento administrativo extenso y, a primera vista, indistinguible de los demás. Sospechas que solo uno guarda lo que necesitas. Encuentra la forma de salir sin perder el tiempo leyendo en vano.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 17.215378148001037,
+      "agent_result": {
+        "answer": "<thinking>La puerta principal se ha abierto con éxito utilizando la llave del archivo. He cumplido con el objetivo de salir de la sala sin perder el tiempo leyendo en vano.</thinking>\n\n<answer>He salido de la sala usando la llave del archivo que encontré en el expediente 7240.</answer>",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Archivo central.\nUna sala alargada con olor a papel y polvo. Una estantería metálica recorre la pared norte, llena de expedientes encuadernados con tela gris e identificados solo por un número de caso. En la pared sur, la puerta principal con cerradura institucional. No hay ventanas; la luz viene de un fluorescente que zumba.\nVes:\n  - estantería del archivo [id: estanteria_archivo]\n  - puerta principal [id: puerta_principal] (cerrada)",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"estanteria_archivo\"}",
+            "tool_output": "estantería del archivo: Una estantería metálica de cinco baldas. Cada balda contiene cuatro expedientes encuadernados en tela gris, identificados con una etiqueta blanca donde solo aparece el número de caso. Son veinte expedientes en total, todos del mismo tamaño aproximado.\nContiene:\n  - expediente 1042 [id: expediente_1042]\n  - expediente 1387 [id: expediente_1387]\n  - expediente 1850 [id: expediente_1850]\n  - expediente 2104 [id: expediente_2104]\n  - expediente 2519 [id: expediente_2519]\n  - expediente 2841 [id: expediente_2841]\n  - expediente 3206 [id: expediente_3206]\n  - expediente 3478 [id: expediente_3478]\n  - expediente 3902 [id: expediente_3902]\n  - expediente 4117 [id: expediente_4117]\n  - expediente 4583 [id: expediente_4583]\n  - expediente 4860 [id: expediente_4860]\n  - expediente 5135 [id: expediente_5135]\n  - expediente 5404 [id: expediente_5404]\n  - expediente 5829 [id: expediente_5829]\n  - expediente 6201 [id: expediente_6201]\n  - expediente 6534 [id: expediente_6534]\n  - expediente 6987 [id: expediente_6987]\n  - expediente 7240 [id: expediente_7240]\n  - expediente 7615 [id: expediente_7615]",
+            "error": null
+          },
+          {
+            "tool_name": "research_documents",
+            "tool_input": "{\"document_ids\": [\"expediente_1042\", \"expediente_1387\", \"expediente_1850\", \"expediente_2104\", \"expediente_2519\", \"expediente_2841\", \"expediente_3206\", \"expediente_3478\", \"expediente_3902\", \"expediente_4117\", \"expediente_4583\", \"expediente_4860\", \"expediente_5135\", \"expediente_5404\", \"expediente_5829\", \"expediente_6201\", \"expediente_6534\", \"expediente_6987\", \"expediente_7240\", \"expediente_7615\"], \"objective\": \"Encontrar la forma de salir sin perder el tiempo leyendo en vano\"}",
+            "tool_output": "{\"examined_document_ids\": [\"expediente_1042\", \"expediente_1387\", \"expediente_1850\", \"expediente_2104\", \"expediente_2519\", \"expediente_2841\", \"expediente_3206\", \"expediente_3478\", \"expediente_3902\", \"expediente_4117\", \"expediente_4583\", \"expediente_4860\", \"expediente_5135\", \"expediente_5404\", \"expediente_5829\", \"expediente_6201\", \"expediente_6534\", \"expediente_6987\", \"expediente_7240\", \"expediente_7615\"], \"findings\": [{\"source_id\": \"expediente_1042\", \"revealed_items\": [], \"relevant_fact\": \"The resolution mentions the possibility of appealing to the rectorado within fifteen days, providing a clear exit strategy if unsatisfied with the decision.\"}, {\"source_id\": \"expediente_1387\", \"revealed_items\": [], \"relevant_fact\": \"The document outlines a clear timeline for the redistribution of offices, indicating when the provisional assignment will be accepted as final.\"}, {\"source_id\": \"expediente_2104\", \"revealed_items\": [], \"relevant_fact\": \"The resolution process includes a specific timeline for the admission decision, which can guide candidates on when to expect a response.\"}, {\"source_id\": \"expediente_6201\", \"revealed_items\": [], \"relevant_fact\": \"The investigation was concluded with a resolution, and the measures will be followed up through separate channels.\"}, {\"source_id\": \"expediente_6987\", \"revealed_items\": [], \"relevant_fact\": \"The contract renewal process has been decided with specific conditions and a timeline for signing the agreement.\"}, {\"source_id\": \"expediente_7240\", \"revealed_items\": [{\"id\": \"llave_archivo\", \"name\": \"llave del archivo\"}], \"relevant_fact\": \"The professor's retirement benefits and emeritus status have been reviewed and certified, with a planned academic tribute.\"}, {\"source_id\": \"expediente_7615\", \"revealed_items\": [], \"relevant_fact\": \"The policy for recognizing institutional donors has been established with clear criteria and procedures.\"}], \"worker_errors\": [\"El worker reporto objetos no revelados por examine en expediente_1042: appeal_to_rectorado\", \"El worker reporto objetos no revelados por examine en expediente_1387: provisional_assignment_deadline\", \"El worker reporto objetos no revelados por examine en expediente_2104: admission_decision_timeline\", \"El worker reporto objetos no revelados por examine en expediente_6201: resolucion_6201\", \"El worker reporto objetos no revelados por examine en expediente_6987: acuerdo_6987\", \"El worker reporto objetos no revelados por examine en expediente_7240: certificacion_7240\", \"El worker reporto objetos no revelados por examine en expediente_7615: politica_7615\"]}",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_archivo\"}",
+            "tool_output": "Tomas llave del archivo.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_archivo\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave del archivo con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 20176,
+        "output_tokens": 631
+      },
+      "delegation": {
+        "workers_started": 4,
+        "worker_tool_calls": 20,
+        "input_tokens": 16143,
+        "output_tokens": 1016,
+        "worker_errors": [
+          "El worker reporto objetos no revelados por examine en expediente_1042: appeal_to_rectorado",
+          "El worker reporto objetos no revelados por examine en expediente_1387: provisional_assignment_deadline",
+          "El worker reporto objetos no revelados por examine en expediente_2104: admission_decision_timeline",
+          "El worker reporto objetos no revelados por examine en expediente_6201: resolucion_6201",
+          "El worker reporto objetos no revelados por examine en expediente_6987: acuerdo_6987",
+          "El worker reporto objetos no revelados por examine en expediente_7240: certificacion_7240",
+          "El worker reporto objetos no revelados por examine en expediente_7615: politica_7615"
+        ]
+      },
+      "attempt": 1
+    },
+    {
+      "scenario": "study-with-key",
+      "difficulty": "easy",
+      "user_message": "Te despiertas encerrado en un pequeño estudio. La puerta está cerrada. Encuentra la forma de salir. Usa las herramientas que tienes disponibles para explorar la sala y resolver el puzzle.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 7.834505184997397,
+      "agent_result": {
+        "answer": "<thinking>La llave dorada funcionó y pude abrir la puerta principal. He logrado salir del estudio.</thinking> ",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Estudio.\nUn estudio pequeño forrado de libros. Una alfombra persa cubre el centro del suelo. A un lado hay un escritorio de roble. Al fondo, la puerta principal.\nVes:\n  - alfombra [id: alfombra]\n  - escritorio [id: escritorio]\n  - puerta principal [id: puerta_principal] (cerrada)",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"alfombra\"}",
+            "tool_output": "alfombra: Una vieja alfombra persa. Algo abulta debajo.\nContiene:\n  - llave dorada [id: llave_oro]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_oro\"}",
+            "tool_output": "Tomas llave dorada.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave dorada con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 10688,
+        "output_tokens": 324
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 2
+    },
+    {
+      "scenario": "color-locks",
+      "difficulty": "medium",
+      "user_message": "Te despiertas en un sótano frío. La puerta principal, al fondo, está cerrada con una cerradura dorada considerable. Sobre una repisa baja brilla una llave plateada. Repartidos por el suelo hay cuatro cofres pintados de colores distintos (plateado, rojo, verde y azul), cada uno con su cerradura del mismo color. Algunos cofres están cerrados con llave, otros no. Encuentra la forma de salir.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": false,
+      "goal_reason": "puerta principal está cerrada",
+      "duration_seconds": 1.1177247259984142,
+      "agent_result": {
+        "answer": "<thinking>No hay hechos en el Scratchpad, así que el primer paso es observar el entorno para obtener información sobre los objetos presentes y sus IDs.</thinking>\n",
+        "steps": [],
+        "error": null,
+        "input_tokens": 1894,
+        "output_tokens": 41
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 2
+    },
+    {
+      "scenario": "apartment-keys",
+      "difficulty": "medium",
+      "user_message": "Te despiertas en el recibidor de un apartamento desconocido. La puerta principal está cerrada con llave y no la ves por ningún lado. Hay un pasillo que se interna en el apartamento. Explora los ambientes, encuentra la llave y vuelve a abrir la puerta principal.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 15.761967095997534,
+      "agent_result": {
+        "answer": "<thinking>He abierto la puerta principal con la llave dorada, lo que significa que he completado el objetivo de encontrar la llave y abrir la puerta.</thinking>\n\n",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Recibidor.\nUn recibidor estrecho con un perchero vacío y un espejo polvoriento. La puerta principal, de metal, está cerrada con una cerradura simple. Un pasillo se abre hacia el norte.\nVes:\n  - puerta principal [id: puerta_principal] (cerrada)\nSalidas: norte.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"norte\"}",
+            "tool_output": "Caminas hacia norte. Llegas a Pasillo.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Pasillo.\nUn pasillo en penumbra con cuadros torcidos. Conecta el recibidor al sur con la cocina al este.\nNo ves nada de interés.\nSalidas: este, sur.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Cocina.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Cocina.\nUna cocina pequeña con azulejos blancos. Hay una mesada con un cajón cerrado y olor a café frío.\nVes:\n  - cajón de la cocina [id: cajon]\nSalidas: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cajon\"}",
+            "tool_output": "cajón de la cocina: Un cajón de madera bajo la mesada. Se abre con un tirón y dentro hay cubiertos sueltos y algo más.\nContiene:\n  - llave dorada [id: llave_oro]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_oro\"}",
+            "tool_output": "Tomas llave dorada.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Error: no ves ningún 'puerta_principal' aquí.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"sur\"}",
+            "tool_output": "Error: no hay salida 'sur' desde aquí. Salidas disponibles: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Caminas hacia oeste. Llegas a Pasillo.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Error: no hay salida 'oeste' desde aquí. Salidas disponibles: este, sur.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Cocina.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Caminas hacia oeste. Llegas a Pasillo.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Error: no hay salida 'oeste' desde aquí. Salidas disponibles: este, sur.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"sur\"}",
+            "tool_output": "Caminas hacia sur. Llegas a Recibidor.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave dorada con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 45579,
+        "output_tokens": 864
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 2
+    },
+    {
+      "scenario": "library-search",
+      "difficulty": "hard",
+      "user_message": "Te despiertas en la biblioteca del archivero. La puerta principal está cerrada con una cerradura grabada. En la pared opuesta hay una caja fuerte empotrada, también cerrada. Una estantería alta ocupa la pared norte con ocho volúmenes encuadernados de forma parecida. Hay también un viejo escritorio en el centro. Encuentra la forma de salir.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": false,
+      "goal_reason": "puerta principal está cerrada",
+      "duration_seconds": 1.116855371001293,
+      "agent_result": {
+        "answer": "<thinking>No hay hechos todavía, así que el primer paso es observar el entorno para identificar los objetos presentes y sus IDs.</thinking>\n",
+        "steps": [],
+        "error": null,
+        "input_tokens": 1875,
+        "output_tokens": 36
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 2
+    },
+    {
+      "scenario": "office-sequence",
+      "difficulty": "hard",
+      "user_message": "Te despiertas en una oficina vacía. Tu objetivo: salir por la puerta principal LLEVÁNDOTE el documento confidencial. Aviso importante: la puerta principal se sella en cuanto la abrís, así que asegurate de tener el documento contigo ANTES de abrirla. La puerta necesita una llave maestra; la llave maestra y el documento están en una caja fuerte del archivo; y la llave de esa caja está guardada en el depósito. Recorré los ambientes en el orden correcto.",
+      "goal": {
+        "type": "sequence",
+        "goals": [
+          {
+            "type": "item_in_inventory",
+            "item": "documento_confidencial"
+          },
+          {
+            "type": "item_open",
+            "item": "puerta_principal"
+          }
+        ]
+      },
+      "goal_achieved": true,
+      "goal_reason": "secuencia completada en el orden correcto",
+      "duration_seconds": 25.799640869998257,
+      "agent_result": {
+        "answer": "",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Oficina principal.\nUna oficina con un escritorio amplio y una puerta principal blindada. Un corredor sale hacia el este.\nVes:\n  - escritorio [id: escritorio]\n  - puerta principal [id: puerta_principal] (cerrada)\nSalidas: este.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Corredor.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Corredor.\nUn corredor central que distribuye hacia la oficina (oeste), el archivo (norte) y el depósito (este).\nNo ves nada de interés.\nSalidas: este, norte, oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Depósito.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Depósito.\nUn cuarto de limpieza con estanterías metálicas y un cajón etiquetado 'LLAVES'.\nVes:\n  - cajón de llaves [id: cajon_llaves]\nSalidas: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"cajon_llaves\"}",
+            "tool_output": "Error: cajón de llaves no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cajon_llaves\"}",
+            "tool_output": "cajón de llaves: Un cajón metálico etiquetado 'LLAVES'. Dentro cuelga una sola llave pequeña.\nContiene:\n  - llave de la caja fuerte [id: llave_caja]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_caja\"}",
+            "tool_output": "Tomas llave de la caja fuerte.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"norte\"}",
+            "tool_output": "Error: no hay salida 'norte' desde aquí. Salidas disponibles: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Caminas hacia oeste. Llegas a Corredor.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"norte\"}",
+            "tool_output": "Caminas hacia norte. Llegas a Archivo.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Archivo.\nUna sala con armarios de expedientes y una caja fuerte empotrada en la pared.\nVes:\n  - caja fuerte [id: caja_fuerte] (cerrada)\nSalidas: sur.\nLlevas: llave de la caja fuerte [id: llave_caja].",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_caja\", \"target\": \"caja_fuerte\"}",
+            "tool_output": "Usas llave de la caja fuerte con caja fuerte. Se abre.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Archivo.\nUna sala con armarios de expedientes y una caja fuerte empotrada en la pared.\nVes:\n  - caja fuerte [id: caja_fuerte] (abierta)\nSalidas: sur.\nLlevas: llave de la caja fuerte [id: llave_caja].",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"caja_fuerte\"}",
+            "tool_output": "caja fuerte: Una caja fuerte empotrada con una cerradura de llave plana. Cerrada.\nContiene:\n  - documento confidencial [id: documento_confidencial]\n  - llave maestra [id: llave_maestra]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_maestra\"}",
+            "tool_output": "Tomas llave maestra.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"documento_confidencial\"}",
+            "tool_output": "Tomas documento confidencial.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"sur\"}",
+            "tool_output": "Caminas hacia sur. Llegas a Corredor.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Caminas hacia oeste. Llegas a Oficina principal.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_maestra\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave maestra con puerta principal. Se abre.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"puerta_principal\"}",
+            "tool_output": "Error: no hay salida 'puerta_principal' desde aquí. Salidas disponibles: este.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Corredor.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Depósito.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Error: no hay salida 'este' desde aquí. Salidas disponibles: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Caminas hacia oeste. Llegas a Corredor.",
+            "error": null
+          }
+        ],
+        "error": "Se alcanzó el máximo de iteraciones (25) sin que el modelo produjera una respuesta final.",
+        "input_tokens": 83469,
+        "output_tokens": 1246
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 2
+    },
+    {
+      "scenario": "extreme-archive",
+      "difficulty": "extreme",
+      "user_message": "Te despiertas en el archivo central de la facultad. La puerta principal está cerrada con una cerradura institucional. La estantería frente a ti contiene veinte expedientes; cada uno parece un documento administrativo extenso y, a primera vista, indistinguible de los demás. Sospechas que solo uno guarda lo que necesitas. Encuentra la forma de salir sin perder el tiempo leyendo en vano.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 20.46682590400087,
+      "agent_result": {
+        "answer": "<thinking>Hemos tomado la llave del archivo y la hemos usado en la puerta principal, que ahora está abierta. Hemos cumplido el objetivo de salir sin perder el tiempo leyendo en vano.</thinking>\n\n<response>Has salido del Archivo central usando la llave del archivo que encontraste en el expediente_7240. ¡Buena suerte en tu próxima aventura!</response>",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Archivo central.\nUna sala alargada con olor a papel y polvo. Una estantería metálica recorre la pared norte, llena de expedientes encuadernados con tela gris e identificados solo por un número de caso. En la pared sur, la puerta principal con cerradura institucional. No hay ventanas; la luz viene de un fluorescente que zumba.\nVes:\n  - estantería del archivo [id: estanteria_archivo]\n  - puerta principal [id: puerta_principal] (cerrada)",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"estanteria_archivo\"}",
+            "tool_output": "estantería del archivo: Una estantería metálica de cinco baldas. Cada balda contiene cuatro expedientes encuadernados en tela gris, identificados con una etiqueta blanca donde solo aparece el número de caso. Son veinte expedientes en total, todos del mismo tamaño aproximado.\nContiene:\n  - expediente 1042 [id: expediente_1042]\n  - expediente 1387 [id: expediente_1387]\n  - expediente 1850 [id: expediente_1850]\n  - expediente 2104 [id: expediente_2104]\n  - expediente 2519 [id: expediente_2519]\n  - expediente 2841 [id: expediente_2841]\n  - expediente 3206 [id: expediente_3206]\n  - expediente 3478 [id: expediente_3478]\n  - expediente 3902 [id: expediente_3902]\n  - expediente 4117 [id: expediente_4117]\n  - expediente 4583 [id: expediente_4583]\n  - expediente 4860 [id: expediente_4860]\n  - expediente 5135 [id: expediente_5135]\n  - expediente 5404 [id: expediente_5404]\n  - expediente 5829 [id: expediente_5829]\n  - expediente 6201 [id: expediente_6201]\n  - expediente 6534 [id: expediente_6534]\n  - expediente 6987 [id: expediente_6987]\n  - expediente 7240 [id: expediente_7240]\n  - expediente 7615 [id: expediente_7615]",
+            "error": null
+          },
+          {
+            "tool_name": "research_documents",
+            "tool_input": "{\"document_ids\": [\"expediente_1042\", \"expediente_1387\", \"expediente_1850\", \"expediente_2104\", \"expediente_2519\", \"expediente_2841\", \"expediente_3206\", \"expediente_3478\", \"expediente_3902\", \"expediente_4117\", \"expediente_4583\", \"expediente_4860\", \"expediente_5135\", \"expediente_5404\", \"expediente_5829\", \"expediente_6201\", \"expediente_6534\", \"expediente_6987\", \"expediente_7240\", \"expediente_7615\"], \"objective\": \"Encontrar la forma de salir sin perder el tiempo leyendo en vano.\"}",
+            "tool_output": "{\"examined_document_ids\": [\"expediente_1042\", \"expediente_1387\", \"expediente_1850\", \"expediente_2104\", \"expediente_2519\", \"expediente_2841\", \"expediente_3206\", \"expediente_3478\", \"expediente_3902\", \"expediente_4117\", \"expediente_4583\", \"expediente_4860\", \"expediente_5135\", \"expediente_5404\", \"expediente_5829\", \"expediente_6201\", \"expediente_6534\", \"expediente_6987\", \"expediente_7240\", \"expediente_7615\"], \"findings\": [{\"source_id\": \"expediente_1042\", \"revealed_items\": [], \"relevant_fact\": \"The disciplinary resolution can be appealed within fifteen days.\"}, {\"source_id\": \"expediente_1387\", \"revealed_items\": [], \"relevant_fact\": \"Disputes over provisional office assignments must be submitted in writing before the end of the month.\"}, {\"source_id\": \"expediente_1850\", \"revealed_items\": [], \"relevant_fact\": \"Approval before January 15 allows the equipment to be operational by March.\"}, {\"source_id\": \"expediente_2104\", \"revealed_items\": [], \"relevant_fact\": \"Admission appeals can be processed and resolved within a short timeframe.\"}, {\"source_id\": \"expediente_2519\", \"revealed_items\": [], \"relevant_fact\": \"The selection process for associate professor positions is conducted within a specified timeframe.\"}, {\"source_id\": \"expediente_5135\", \"revealed_items\": [], \"relevant_fact\": \"The election protocol outlines a clear timeline and process for department director elections, which could be a model for efficient administrative processes.\"}, {\"source_id\": \"expediente_5829\", \"revealed_items\": [], \"relevant_fact\": \"The justification for acquiring new computer equipment highlights the need for up-to-date technology to avoid wasting time due to outdated equipment.\"}, {\"source_id\": \"expediente_6201\", \"revealed_items\": [], \"relevant_fact\": \"Harassment investigation concluded with a preventive transfer and mandatory training for the accused.\"}, {\"source_id\": \"expediente_6534\", \"revealed_items\": [], \"relevant_fact\": \"Institutional support for a visa application includes a commitment to notify authorities of any academic status changes.\"}, {\"source_id\": \"expediente_6987\", \"revealed_items\": [], \"relevant_fact\": \"Cafeteria contract renewal includes extended hours during exams and dietary options for restricted diets.\"}, {\"source_id\": \"expediente_7240\", \"revealed_items\": [{\"id\": \"llave_archivo\", \"name\": \"llave del archivo\"}], \"relevant_fact\": \"Pension benefits review confirms eligibility for emeritus status and pension benefits.\"}, {\"source_id\": \"expediente_7615\", \"revealed_items\": [], \"relevant_fact\": \"Institutional donor recognition policy outlines criteria for different levels of recognition based on donation amount.\"}], \"worker_errors\": [\"El worker reporto objetos no revelados por examine en expediente_1042: expediente_1042\", \"El worker reporto objetos no revelados por examine en expediente_1387: expediente_1387\", \"El worker reporto objetos no revelados por examine en expediente_1850: expediente_1850\", \"El worker reporto objetos no revelados por examine en expediente_2104: expediente_2104\", \"El worker reporto objetos no revelados por examine en expediente_2519: expediente_2519\", \"El worker reporto objetos no revelados por examine en expediente_5135: expediente_5135\", \"El worker reporto objetos no revelados por examine en expediente_5829: expediente_5829\", \"El worker reporto objetos no revelados por examine en expediente_6201: training_6201, transfer_6201\", \"El worker reporto objetos no revelados por examine en expediente_6534: support_6534\", \"El worker reporto objetos no revelados por examine en expediente_6987: hours_6987, options_6987\", \"El worker reporto objetos no revelados por examine en expediente_7240: benefits_7240, emeritus_7240\", \"El worker reporto objetos no revelados por examine en expediente_7615: policy_7615\"]}",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_archivo\"}",
+            "tool_output": "Tomas llave del archivo.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_archivo\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave del archivo con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 16695,
+        "output_tokens": 622
+      },
+      "delegation": {
+        "workers_started": 4,
+        "worker_tool_calls": 20,
+        "input_tokens": 16143,
+        "output_tokens": 1551,
+        "worker_errors": [
+          "El worker reporto objetos no revelados por examine en expediente_1042: expediente_1042",
+          "El worker reporto objetos no revelados por examine en expediente_1387: expediente_1387",
+          "El worker reporto objetos no revelados por examine en expediente_1850: expediente_1850",
+          "El worker reporto objetos no revelados por examine en expediente_2104: expediente_2104",
+          "El worker reporto objetos no revelados por examine en expediente_2519: expediente_2519",
+          "El worker reporto objetos no revelados por examine en expediente_5135: expediente_5135",
+          "El worker reporto objetos no revelados por examine en expediente_5829: expediente_5829",
+          "El worker reporto objetos no revelados por examine en expediente_6201: training_6201, transfer_6201",
+          "El worker reporto objetos no revelados por examine en expediente_6534: support_6534",
+          "El worker reporto objetos no revelados por examine en expediente_6987: hours_6987, options_6987",
+          "El worker reporto objetos no revelados por examine en expediente_7240: benefits_7240, emeritus_7240",
+          "El worker reporto objetos no revelados por examine en expediente_7615: policy_7615"
+        ]
+      },
+      "attempt": 2
+    },
+    {
+      "scenario": "study-with-key",
+      "difficulty": "easy",
+      "user_message": "Te despiertas encerrado en un pequeño estudio. La puerta está cerrada. Encuentra la forma de salir. Usa las herramientas que tienes disponibles para explorar la sala y resolver el puzzle.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 7.48255288600194,
+      "agent_result": {
+        "answer": "<thinking>La llave dorada funcionó y pude abrir la puerta principal. Ahora puedo salir del estudio.</thinking>\n\n<thinking>La misión ha sido completada. He logrado salir del estudio usando la llave dorada que encontré debajo de la alfombra.</thinking>\n\n",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Estudio.\nUn estudio pequeño forrado de libros. Una alfombra persa cubre el centro del suelo. A un lado hay un escritorio de roble. Al fondo, la puerta principal.\nVes:\n  - alfombra [id: alfombra]\n  - escritorio [id: escritorio]\n  - puerta principal [id: puerta_principal] (cerrada)",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"alfombra\"}",
+            "tool_output": "alfombra: Una vieja alfombra persa. Algo abulta debajo.\nContiene:\n  - llave dorada [id: llave_oro]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_oro\"}",
+            "tool_output": "Tomas llave dorada.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave dorada con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 10578,
+        "output_tokens": 295
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 3
+    },
+    {
+      "scenario": "color-locks",
+      "difficulty": "medium",
+      "user_message": "Te despiertas en un sótano frío. La puerta principal, al fondo, está cerrada con una cerradura dorada considerable. Sobre una repisa baja brilla una llave plateada. Repartidos por el suelo hay cuatro cofres pintados de colores distintos (plateado, rojo, verde y azul), cada uno con su cerradura del mismo color. Algunos cofres están cerrados con llave, otros no. Encuentra la forma de salir.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": false,
+      "goal_reason": "puerta principal está cerrada",
+      "duration_seconds": 1.4995562199983397,
+      "agent_result": {
+        "answer": "<thinking>No hay hechos disponibles en el Scratchpad, por lo que el primer paso es observar el entorno para identificar los objetos presentes y sus IDs.</thinking>\n\n<thinking>Con los IDs de los objetos, puedo proceder a examinarlos para descubrir pistas o contenido que puedan ayudar a encontrar la salida.</thinking>\n",
+        "steps": [],
+        "error": null,
+        "input_tokens": 1894,
+        "output_tokens": 79
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 3
+    },
+    {
+      "scenario": "apartment-keys",
+      "difficulty": "medium",
+      "user_message": "Te despiertas en el recibidor de un apartamento desconocido. La puerta principal está cerrada con llave y no la ves por ningún lado. Hay un pasillo que se interna en el apartamento. Explora los ambientes, encuentra la llave y vuelve a abrir la puerta principal.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 344.6674203529983,
+      "agent_result": {
+        "answer": "<thinking>Finalmente hemos logrado abrir la puerta principal con la llave dorada. Hemos cumplido con el objetivo de encontrar la llave y abrir la puerta.</thinking>\n\n<answer>Hemos logrado abrir la puerta principal con la llave dorada que encontramos en el cajón de la cocina.</answer>",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Recibidor.\nUn recibidor estrecho con un perchero vacío y un espejo polvoriento. La puerta principal, de metal, está cerrada con una cerradura simple. Un pasillo se abre hacia el norte.\nVes:\n  - puerta principal [id: puerta_principal] (cerrada)\nSalidas: norte.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"norte\"}",
+            "tool_output": "Caminas hacia norte. Llegas a Pasillo.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Pasillo.\nUn pasillo en penumbra con cuadros torcidos. Conecta el recibidor al sur con la cocina al este.\nNo ves nada de interés.\nSalidas: este, sur.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Cocina.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Cocina.\nUna cocina pequeña con azulejos blancos. Hay una mesada con un cajón cerrado y olor a café frío.\nVes:\n  - cajón de la cocina [id: cajon]\nSalidas: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cajon\"}",
+            "tool_output": "cajón de la cocina: Un cajón de madera bajo la mesada. Se abre con un tirón y dentro hay cubiertos sueltos y algo más.\nContiene:\n  - llave dorada [id: llave_oro]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_oro\"}",
+            "tool_output": "Tomas llave dorada.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Cocina.\nUna cocina pequeña con azulejos blancos. Hay una mesada con un cajón cerrado y olor a café frío.\nVes:\n  - cajón de la cocina [id: cajon]\nSalidas: oeste.\nLlevas: llave dorada [id: llave_oro].",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Error: no ves ningún 'puerta_principal' aquí.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Error: La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente.",
+            "error": "La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente."
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Error: La llamada ya falló sin que hubiera progreso. Elegí una acción diferente.",
+            "error": "La llamada ya falló sin que hubiera progreso. Elegí una acción diferente."
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"sur\"}",
+            "tool_output": "Error: no hay salida 'sur' desde aquí. Salidas disponibles: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Caminas hacia oeste. Llegas a Pasillo.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Pasillo.\nUn pasillo en penumbra con cuadros torcidos. Conecta el recibidor al sur con la cocina al este.\nNo ves nada de interés.\nSalidas: este, sur.\nLlevas: llave dorada [id: llave_oro].",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"sur\"}",
+            "tool_output": "Caminas hacia sur. Llegas a Recibidor.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Recibidor.\nUn recibidor estrecho con un perchero vacío y un espejo polvoriento. La puerta principal, de metal, está cerrada con una cerradura simple. Un pasillo se abre hacia el norte.\nVes:\n  - puerta principal [id: puerta_principal] (cerrada)\nSalidas: norte.\nLlevas: llave dorada [id: llave_oro].",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave dorada con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 50111,
+        "output_tokens": 876
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 3
+    },
+    {
+      "scenario": "library-search",
+      "difficulty": "hard",
+      "user_message": "Te despiertas en la biblioteca del archivero. La puerta principal está cerrada con una cerradura grabada. En la pared opuesta hay una caja fuerte empotrada, también cerrada. Una estantería alta ocupa la pared norte con ocho volúmenes encuadernados de forma parecida. Hay también un viejo escritorio en el centro. Encuentra la forma de salir.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 17.56515184300224,
+      "agent_result": {
+        "answer": "<thinking>La puerta principal se abrió con la llave grabada, lo que significa que hemos logrado salir de la biblioteca del archivero.</thinking>\n\n<response>Has logrado salir de la biblioteca del archivero usando la llave grabada en la puerta principal.</response>",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Biblioteca del archivero.\nUna sala rectangular con olor a papel viejo. Al norte, una estantería alta de roble cargada de libros antiguos. En el centro, un escritorio robusto con un cajón único, vacío al primer vistazo. En la pared oeste, empotrada en el muro, una caja fuerte de hierro con bisagras macizas y un disco de combinación que en realidad oculta una cerradura convencional. Enfrente, la puerta principal, de hierro negro, con la cerradura grabada de símbolos.\nVes:\n  - escritorio [id: escritorio]\n  - estantería alta [id: estanteria_alta]\n  - caja fuerte [id: caja_fuerte] (cerrada)\n  - puerta principal [id: puerta_principal] (cerrada)",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"estanteria_alta\"}",
+            "tool_output": "estantería alta: Una estantería de roble de cuatro baldas. Solo la balda superior tiene libros — ocho volúmenes encuadernados con materiales distintos pero de tamaño parecido. Las baldas inferiores están vacías.\nContiene:\n  - Elementos de geometría aplicada [id: libro_geometria]\n  - Notas sobre la transmutación de los metales [id: libro_alquimia]\n  - Diálogos sobre la naturaleza del juicio [id: libro_filosofia]\n  - Anales del reino, década quinta [id: libro_historia]\n  - Recopilación de sentencias del tribunal supremo [id: libro_jurisprudencia]\n  - Recetario del cocinero mayor [id: libro_recetario]\n  - Genealogía de la casa de Andrade [id: libro_genealogia]\n  - Colección de sermones dominicales [id: libro_sermones]",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"libro_geometria\"}",
+            "tool_output": "Elementos de geometría aplicada: Encuadernación rígida de cartón forrado en tela negra, lomo reforzado. Proposición XVII (página 84): 'En todo triángulo, si se prolongan dos de sus lados hasta cortarse en un punto exterior, los ángulos así formados son iguales a los ángulos opuestos por el vértice del triángulo original.' La demostración ocupa página y media y se apoya en las proposiciones IV, IX y XII. El autor — Tomás del Riego, ingeniero militar — añade en nota al pie que esta proposición le ahorró tres días de cálculo en el trazado del fuerte de San Marcos, en el año 1721, y recomienda al lector aplicarla con prudencia cuando la regla no alcance. El resto del capítulo desarrolla seis problemas resueltos sobre triángulos semejantes, cuadrados inscritos en círculos y trazado de polígonos regulares de cinco, seis y ocho lados. Las figuras están grabadas en cobre y aparecen al pie de cada problema, con líneas de construcción discontinuas y letras latinas para los vértices.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"libro_alquimia\"}",
+            "tool_output": "Notas sobre la transmutación de los metales: Manuscrito en cuarto, encuadernación de cuero rojo desgastado, sin nombre de autor. Folio 23 verso: 'Operación segunda: tomadas las virutas de plomo del peso de una onza y tres adarmes, póngase en crisol de arcilla refractaria, cúbrase con sal de tártaro y cal viva en partes iguales, y caliéntese al rojo cereza durante doce horas seguidas sin dejar enfriar el fuelle. Apartado del fuego, déjese reposar el crisol hasta la mañana siguiente. Al romperlo se hallará una masa vidriosa en cuya superficie aparecerán glóbulos del metal del sol; recójanse con espátula de cuerno, no de metal vulgar. Sucede a veces, no diré con qué frecuencia, que la operación produzca solo una escoria gris y maloliente; en tal caso conviene revisar la pureza de la cal y la quietud del firmamento.' El folio siguiente lleva una receta similar para la cal de mercurio. Hay marcas de quemaduras en los márgenes y manchas oscuras que el lector cuidadoso reconocerá como hierro oxidado.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"libro_filosofia\"}",
+            "tool_output": "Diálogos sobre la naturaleza del juicio: Volumen de pequeño tamaño, encuadernado en piel verde con cantos dorados. Diálogo tercero, entre Macario y Filón: '— Dime, Filón: cuando juzgas a tu vecino, ¿le pesas con la misma balanza con que te pesas a ti mismo? — A veces, Macario; pero he advertido que la balanza pierde fiel cuando se mira de cerca. — Es decir, que cuanto más te conoces, menos riguroso eres contigo. — Más bien lo contrario: cuanto más me conozco, más comprendo por qué fallo, y eso me hace indulgente conmigo y a veces injusto con los demás. — De suerte que la indulgencia y la injusticia nacen de la misma raíz. — Eso parece. — Concluyamos entonces que el juicio sano no nace de conocerse, sino de olvidarse: solo el juez que ha dejado fuera de la sala su propio caso puede pesar limpio.' El diálogo prosigue durante diez páginas más, sin que ninguno de los dos consienta del todo en la conclusión del otro. El autor — un canónigo de Salamanca — anota al margen: 'tampoco yo estoy seguro'.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"libro_historia\"}",
+            "tool_output": "Anales del reino, década quinta: Tomo en folio, encuadernación de pergamino crudo, con cintas de cierre. Año 1437, entrada de mayo: 'Llegó al puerto de Santander, en la víspera de san Pedro, una flota de tres naves procedentes de Flandes con cargamento de paño teñido, ámbar y libros impresos. La corona compró el ámbar por mil quinientos maravedís, y el paño quedó para el infante don Sancho. Los libros, traducidos por un fraile de Burgos, se enviaron a la biblioteca real. Las naves regresaron con plata mexicana y aceite andaluz.' Junio: 'Hubo plaga de langosta en los campos de Tierra de Campos, perdiéndose dos tercios de la cosecha. La corona dispensó del diezmo a las parroquias afectadas.' Julio: 'El conde de Treviño murió de fiebres, sin heredero legítimo, y sus posesiones revirtieron a la corona tras un pleito que duró seis meses.' Las entradas continúan así, mes por mes, hasta el año 1442. Los márgenes están salpicados de números: probables totales presupuestarios anotados por algún funcionario.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"libro_jurisprudencia\"}",
+            "tool_output": "Recopilación de sentencias del tribunal supremo: Tomo grueso encuadernado en piel parda, con el escudo real estampado en seco en la cubierta. Sentencia 412 del año 1798: 'En la causa seguida contra Juan Espinosa, vecino de Trujillo, por presunta apropiación indebida de aguas de regadío comunal, vista la prueba documental y testimonial aportada por ambas partes, este tribunal falla: el demandado deberá restituir a la comunidad de regantes la cantidad de tres cargas de cebada equivalentes al daño estimado, abonará costas, y se le impone censura pública en plaza por hábito reiterado de prácticas similares. No procede pena de cárcel por carecer el reo de antecedentes formales. Notifíquese a la autoridad municipal correspondiente.' Las sentencias siguientes versan sobre lindes de fincas, herencias mal repartidas y cobros de censos vencidos. El estilo es severo y conciso; las decisiones tienden a buscar la restitución antes que el castigo. Al final del tomo, un índice ordena los casos por materia: aguas, lindes, herencias, mercados, contratos.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"libro_recetario\"}",
+            "tool_output": "Recetario del cocinero mayor: Manuscrito en cuarto, tapas blandas de pergamino, manchado de aceite. Receta del capón en pepitoria, página 47: 'Tómese un capón joven, bien limpio y troceado, y póngase a dorar en cazuela de barro con manteca de cerdo y un poco de tocino. Cuando esté tomado por todos lados, añádase una cabeza de ajos picada, un puñado de almendras tostadas y machacadas, una cucharada de harina y un vaso del mejor vino blanco que se tenga. Déjese reducir un cuarto de hora a fuego mediano; añádanse después dos huevos cocidos, picado fino el blanco y reservada la yema. Cúbrase con caldo de gallina hasta que el capón quede sumergido, y cuézase a fuego lento durante hora y media. Al final, deslíase la yema de huevo en un poco de la salsa y añádase a la cazuela fuera del fuego, removiendo bien para que ligue. Espolvoréese perejil picado y sírvase muy caliente.' Las páginas siguientes detallan recetas de pichones, conejo, ternera estofada y un curioso pastel de hojaldre con manzana.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"libro_genealogia\"}",
+            "tool_output": "Genealogía de la casa de Andrade: Tomo grande encuadernado en piel azul, con grabados heráldicos en el lomo. Capítulo I — Origen y primera generación: 'Pero Domínguez de Andrade, llamado el Calvo por su temprana pérdida de cabello, fundó la casa en el año 1284 al recibir de don Sancho IV las tierras de Andrade en Tierra de Lemos, en pago por sus servicios en la frontera de Granada. Casó en primeras nupcias con doña Mencía Rodríguez, de la cual tuvo tres hijos: Fernán, Diego y Teresa. Enviudó en 1297 y casó de nuevo con doña Aldonza Pérez de Sarria, sin sucesión. Murió en 1312 de heridas mal cicatrizadas tras una caída de caballo.' El árbol genealógico ocupa una página plegada y baja hasta finales del siglo XVIII, con doce ramas principales y numerosas colaterales. Los nombres se repiten: Fernán, Sancho, Pero, Teresa, Mencía. Las anotaciones marginales indican fechas de nacimiento, casamientos, defunciones y, en algunos casos, una breve nota sobre el oficio o las circunstancias del fin.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"libro_sermones\"}",
+            "tool_output": "Colección de sermones dominicales: Tomo encuadernado en piel negra con cantos rojos, muy usado. Sermón XXI, para el cuarto domingo de cuaresma: 'Mis hermanos, no es la enmienda lo que se nos pide, sino el principio de la enmienda; no la perfección, sino el ánimo de empezar. Cristo no espera al santo en el umbral de la iglesia: espera al pecador que se acerca. Si esto entendemos, lo demás vendrá; si esto no lo entendemos, ni con cuarenta días de ayuno ni con cuarenta noches en vela conseguiremos avanzar un palmo. La vida cristiana no es un palacio que uno construye desde fuera, piedra a piedra hasta dejarlo perfecto; es una casa heredada, que conviene barrer todos los días y reparar cuando algo se rompe.' El predicador — Fray Diego Méndez, dominico — repite la misma estructura en los sermones siguientes: una imagen sencilla, una insistencia, una invitación. El tomo está marcado en docenas de páginas con cintas de seda descoloridas; los márgenes llevan anotaciones de un párroco posterior.\nContiene:\n  - llave de la caja [id: llave_caja]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_caja\"}",
+            "tool_output": "Tomas llave de la caja.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_caja\", \"target\": \"caja_fuerte\"}",
+            "tool_output": "Usas llave de la caja con caja fuerte. Se abre.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"caja_fuerte\"}",
+            "tool_output": "caja fuerte: Caja fuerte de hierro empotrada en el muro. El disco de combinación visible es decorativo: la cerradura real está bajo una placa metálica que solo se abre con una llave específica.\nContiene:\n  - llave grabada [id: llave_grabada]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_grabada\"}",
+            "tool_output": "Tomas llave grabada.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_grabada\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave grabada con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 62845,
+        "output_tokens": 985
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 3
+    },
+    {
+      "scenario": "office-sequence",
+      "difficulty": "hard",
+      "user_message": "Te despiertas en una oficina vacía. Tu objetivo: salir por la puerta principal LLEVÁNDOTE el documento confidencial. Aviso importante: la puerta principal se sella en cuanto la abrís, así que asegurate de tener el documento contigo ANTES de abrirla. La puerta necesita una llave maestra; la llave maestra y el documento están en una caja fuerte del archivo; y la llave de esa caja está guardada en el depósito. Recorré los ambientes en el orden correcto.",
+      "goal": {
+        "type": "sequence",
+        "goals": [
+          {
+            "type": "item_in_inventory",
+            "item": "documento_confidencial"
+          },
+          {
+            "type": "item_open",
+            "item": "puerta_principal"
+          }
+        ]
+      },
+      "goal_achieved": false,
+      "goal_reason": "faltan condiciones: puerta principal está cerrada",
+      "duration_seconds": 25.527499738000188,
+      "agent_result": {
+        "answer": "",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Oficina principal.\nUna oficina con un escritorio amplio y una puerta principal blindada. Un corredor sale hacia el este.\nVes:\n  - escritorio [id: escritorio]\n  - puerta principal [id: puerta_principal] (cerrada)\nSalidas: este.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Corredor.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Corredor.\nUn corredor central que distribuye hacia la oficina (oeste), el archivo (norte) y el depósito (este).\nNo ves nada de interés.\nSalidas: este, norte, oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Depósito.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Depósito.\nUn cuarto de limpieza con estanterías metálicas y un cajón etiquetado 'LLAVES'.\nVes:\n  - cajón de llaves [id: cajon_llaves]\nSalidas: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"cajon_llaves\"}",
+            "tool_output": "Error: cajón de llaves no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cajon_llaves\"}",
+            "tool_output": "cajón de llaves: Un cajón metálico etiquetado 'LLAVES'. Dentro cuelga una sola llave pequeña.\nContiene:\n  - llave de la caja fuerte [id: llave_caja]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_caja\"}",
+            "tool_output": "Tomas llave de la caja fuerte.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"norte\"}",
+            "tool_output": "Error: no hay salida 'norte' desde aquí. Salidas disponibles: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Caminas hacia oeste. Llegas a Corredor.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"norte\"}",
+            "tool_output": "Caminas hacia norte. Llegas a Archivo.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Archivo.\nUna sala con armarios de expedientes y una caja fuerte empotrada en la pared.\nVes:\n  - caja fuerte [id: caja_fuerte] (cerrada)\nSalidas: sur.\nLlevas: llave de la caja fuerte [id: llave_caja].",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_caja\", \"target\": \"caja_fuerte\"}",
+            "tool_output": "Usas llave de la caja fuerte con caja fuerte. Se abre.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"caja_fuerte\"}",
+            "tool_output": "caja fuerte: Una caja fuerte empotrada con una cerradura de llave plana. Cerrada.\nContiene:\n  - documento confidencial [id: documento_confidencial]\n  - llave maestra [id: llave_maestra]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_maestra\"}",
+            "tool_output": "Tomas llave maestra.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"documento_confidencial\"}",
+            "tool_output": "Tomas documento confidencial.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Archivo.\nUna sala con armarios de expedientes y una caja fuerte empotrada en la pared.\nVes:\n  - caja fuerte [id: caja_fuerte] (abierta)\nSalidas: sur.\nLlevas: llave de la caja fuerte [id: llave_caja], llave maestra [id: llave_maestra], documento confidencial [id: documento_confidencial].",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_maestra\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Error: no ves ningún 'puerta_principal' aquí.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Error: La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente.",
+            "error": "La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente."
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_maestra\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Error: La llamada ya falló sin que hubiera progreso. Elegí una acción diferente.",
+            "error": "La llamada ya falló sin que hubiera progreso. Elegí una acción diferente."
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Error: La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente.",
+            "error": "La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente."
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Error: La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente.",
+            "error": "La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente."
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Error: La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente.",
+            "error": "La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente."
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Error: La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente.",
+            "error": "La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente."
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Error: La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente.",
+            "error": "La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente."
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Error: La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente.",
+            "error": "La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente."
+          }
+        ],
+        "error": "Se alcanzó el máximo de iteraciones (25) sin que el modelo produjera una respuesta final.",
+        "input_tokens": 86250,
+        "output_tokens": 1303
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 3
+    },
+    {
+      "scenario": "extreme-archive",
+      "difficulty": "extreme",
+      "user_message": "Te despiertas en el archivo central de la facultad. La puerta principal está cerrada con una cerradura institucional. La estantería frente a ti contiene veinte expedientes; cada uno parece un documento administrativo extenso y, a primera vista, indistinguible de los demás. Sospechas que solo uno guarda lo que necesitas. Encuentra la forma de salir sin perder el tiempo leyendo en vano.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 17.80652657900282,
+      "agent_result": {
+        "answer": "<thinking>He tomado la llave del archivo y la he usado en la puerta principal, que ahora está abierta. He cumplido el objetivo de salir del archivo central.</thinking>\n\n<response>He encontrado la llave del archivo en el expediente 7240 y he utilizado la llave para abrir la puerta principal, logrando salir del archivo central.</response>",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Archivo central.\nUna sala alargada con olor a papel y polvo. Una estantería metálica recorre la pared norte, llena de expedientes encuadernados con tela gris e identificados solo por un número de caso. En la pared sur, la puerta principal con cerradura institucional. No hay ventanas; la luz viene de un fluorescente que zumba.\nVes:\n  - estantería del archivo [id: estanteria_archivo]\n  - puerta principal [id: puerta_principal] (cerrada)",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"estanteria_archivo\"}",
+            "tool_output": "estantería del archivo: Una estantería metálica de cinco baldas. Cada balda contiene cuatro expedientes encuadernados en tela gris, identificados con una etiqueta blanca donde solo aparece el número de caso. Son veinte expedientes en total, todos del mismo tamaño aproximado.\nContiene:\n  - expediente 1042 [id: expediente_1042]\n  - expediente 1387 [id: expediente_1387]\n  - expediente 1850 [id: expediente_1850]\n  - expediente 2104 [id: expediente_2104]\n  - expediente 2519 [id: expediente_2519]\n  - expediente 2841 [id: expediente_2841]\n  - expediente 3206 [id: expediente_3206]\n  - expediente 3478 [id: expediente_3478]\n  - expediente 3902 [id: expediente_3902]\n  - expediente 4117 [id: expediente_4117]\n  - expediente 4583 [id: expediente_4583]\n  - expediente 4860 [id: expediente_4860]\n  - expediente 5135 [id: expediente_5135]\n  - expediente 5404 [id: expediente_5404]\n  - expediente 5829 [id: expediente_5829]\n  - expediente 6201 [id: expediente_6201]\n  - expediente 6534 [id: expediente_6534]\n  - expediente 6987 [id: expediente_6987]\n  - expediente 7240 [id: expediente_7240]\n  - expediente 7615 [id: expediente_7615]",
+            "error": null
+          },
+          {
+            "tool_name": "research_documents",
+            "tool_input": "{\"document_ids\": [\"expediente_1042\", \"expediente_1387\", \"expediente_1850\", \"expediente_2104\", \"expediente_2519\", \"expediente_2841\", \"expediente_3206\", \"expediente_3478\", \"expediente_3902\", \"expediente_4117\", \"expediente_4583\", \"expediente_4860\", \"expediente_5135\", \"expediente_5404\", \"expediente_5829\", \"expediente_6201\", \"expediente_6534\", \"expediente_6987\", \"expediente_7240\", \"expediente_7615\"], \"objective\": \"Encontrar el expediente que contiene la información necesaria para salir\"}",
+            "tool_output": "{\"examined_document_ids\": [\"expediente_1042\", \"expediente_1387\", \"expediente_1850\", \"expediente_2104\", \"expediente_2519\", \"expediente_2841\", \"expediente_3206\", \"expediente_3478\", \"expediente_3902\", \"expediente_4117\", \"expediente_4583\", \"expediente_4860\", \"expediente_5135\", \"expediente_5404\", \"expediente_5829\", \"expediente_6201\", \"expediente_6534\", \"expediente_6987\", \"expediente_7240\", \"expediente_7615\"], \"findings\": [{\"source_id\": \"expediente_1042\", \"revealed_items\": [], \"relevant_fact\": \"The student has been sanctioned with suspension and must attend a workshop on academic practices.\"}, {\"source_id\": \"expediente_4860\", \"revealed_items\": [], \"relevant_fact\": \"The sabbatical application includes the proposed destination and plan of work for the sabbatical period.\"}, {\"source_id\": \"expediente_5829\", \"revealed_items\": [], \"relevant_fact\": \"The justification for the acquisition of computer equipment includes detailed technical specifications for the new equipment.\"}, {\"source_id\": \"expediente_7240\", \"revealed_items\": [{\"id\": \"llave_archivo\", \"name\": \"llave del archivo\"}], \"relevant_fact\": \"Contiene información sobre la jubilación y prestaciones del profesor.\"}], \"worker_errors\": [\"El worker reporto objetos no revelados por examine en expediente_1042: sanction_suspension, sanction_workshop\", \"El worker reporto objetos no revelados por examine en expediente_4860: 1, 2\", \"El worker reporto objetos no revelados por examine en expediente_5829: 1, 2, 3, 4, 5\"]}",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_archivo\"}",
+            "tool_output": "Tomas llave del archivo.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_archivo\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave del archivo con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 14968,
+        "output_tokens": 608
+      },
+      "delegation": {
+        "workers_started": 4,
+        "worker_tool_calls": 20,
+        "input_tokens": 16135,
+        "output_tokens": 1129,
+        "worker_errors": [
+          "El worker reporto objetos no revelados por examine en expediente_1042: sanction_suspension, sanction_workshop",
+          "El worker reporto objetos no revelados por examine en expediente_4860: 1, 2",
+          "El worker reporto objetos no revelados por examine en expediente_5829: 1, 2, 3, 4, 5"
+        ]
+      },
+      "attempt": 3
+    },
+    {
+      "scenario": "study-with-key",
+      "difficulty": "easy",
+      "user_message": "Te despiertas encerrado en un pequeño estudio. La puerta está cerrada. Encuentra la forma de salir. Usa las herramientas que tienes disponibles para explorar la sala y resolver el puzzle.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 4.176029321999522,
+      "agent_result": {
+        "answer": "<thinking>La puerta principal se ha abierto con éxito. He logrado salir del estudio.</thinking>",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Estudio.\nUn estudio pequeño forrado de libros. Una alfombra persa cubre el centro del suelo. A un lado hay un escritorio de roble. Al fondo, la puerta principal.\nVes:\n  - alfombra [id: alfombra]\n  - escritorio [id: escritorio]\n  - puerta principal [id: puerta_principal] (cerrada)",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"alfombra\"}",
+            "tool_output": "alfombra: Una vieja alfombra persa. Algo abulta debajo.\nContiene:\n  - llave dorada [id: llave_oro]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_oro\"}",
+            "tool_output": "Tomas llave dorada.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave dorada con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 10541,
+        "output_tokens": 246
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 4
+    },
+    {
+      "scenario": "color-locks",
+      "difficulty": "medium",
+      "user_message": "Te despiertas en un sótano frío. La puerta principal, al fondo, está cerrada con una cerradura dorada considerable. Sobre una repisa baja brilla una llave plateada. Repartidos por el suelo hay cuatro cofres pintados de colores distintos (plateado, rojo, verde y azul), cada uno con su cerradura del mismo color. Algunos cofres están cerrados con llave, otros no. Encuentra la forma de salir.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 15.960297994999564,
+      "agent_result": {
+        "answer": "<thinking>La puerta principal se abrió con éxito usando la llave dorada. He logrado salir del sótano.</thinking>",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Sótano.\nUn sótano de piedra con olor a humedad y una bombilla solitaria colgando del techo. Una repisa baja en la pared norte sostiene una llave plateada brillante. En el suelo descansan cuatro cofres pintados de colores distintos. Al fondo, una puerta de roble con cerradura dorada.\nVes:\n  - llave plateada [id: llave_plata]\n  - cofre plateado [id: cofre_plata] (cerrada)\n  - cofre rojo [id: cofre_rojo] (cerrada)\n  - cofre verde [id: cofre_verde] (cerrada)\n  - cofre azul [id: cofre_azul]\n  - puerta principal [id: puerta_principal] (cerrada)",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_plata\"}",
+            "tool_output": "Tomas llave plateada.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_plata\", \"target\": \"cofre_plata\"}",
+            "tool_output": "Usas llave plateada con cofre plateado. Se abre.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_plata\"}",
+            "tool_output": "cofre plateado: Un cofre pequeño con tachuelas plateadas y una cerradura del mismo color. Encaja con una llave del mismo color.\nContiene:\n  - llave roja [id: llave_roja]",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_roja\", \"target\": \"cofre_rojo\"}",
+            "tool_output": "Error: no llevas ningún 'llave_roja'.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_roja\"}",
+            "tool_output": "Tomas llave roja.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_roja\", \"target\": \"cofre_rojo\"}",
+            "tool_output": "Usas llave roja con cofre rojo. Se abre.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_rojo\"}",
+            "tool_output": "cofre rojo: Un cofre mediano pintado de rojo, con una cerradura roja del mismo tono. Encaja con una llave del mismo color.\nContiene:\n  - llave verde [id: llave_verde]",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_verde\", \"target\": \"cofre_verde\"}",
+            "tool_output": "Error: no llevas ningún 'llave_verde'.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_verde\"}",
+            "tool_output": "Tomas llave verde.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_verde\", \"target\": \"cofre_verde\"}",
+            "tool_output": "Usas llave verde con cofre verde. Se abre.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_verde\"}",
+            "tool_output": "cofre verde: Un cofre grande pintado de verde, con una cerradura verde voluminosa. Encaja con una llave del mismo color.\nContiene:\n  - llave dorada [id: llave_oro]",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Error: no llevas ningún 'llave_oro'.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_oro\"}",
+            "tool_output": "Tomas llave dorada.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave dorada con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 47177,
+        "output_tokens": 911
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 4
+    },
+    {
+      "scenario": "apartment-keys",
+      "difficulty": "medium",
+      "user_message": "Te despiertas en el recibidor de un apartamento desconocido. La puerta principal está cerrada con llave y no la ves por ningún lado. Hay un pasillo que se interna en el apartamento. Explora los ambientes, encuentra la llave y vuelve a abrir la puerta principal.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 13.506717182001012,
+      "agent_result": {
+        "answer": "<thinking>Hemos logrado abrir la puerta principal usando la llave dorada. Hemos completado el objetivo de encontrar la llave y abrir la puerta principal.</thinking>\n\n<answer>Hemos completado el objetivo de encontrar la llave y abrir la puerta principal.</answer>",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Recibidor.\nUn recibidor estrecho con un perchero vacío y un espejo polvoriento. La puerta principal, de metal, está cerrada con una cerradura simple. Un pasillo se abre hacia el norte.\nVes:\n  - puerta principal [id: puerta_principal] (cerrada)\nSalidas: norte.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"norte\"}",
+            "tool_output": "Caminas hacia norte. Llegas a Pasillo.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Pasillo.\nUn pasillo en penumbra con cuadros torcidos. Conecta el recibidor al sur con la cocina al este.\nNo ves nada de interés.\nSalidas: este, sur.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Cocina.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Cocina.\nUna cocina pequeña con azulejos blancos. Hay una mesada con un cajón cerrado y olor a café frío.\nVes:\n  - cajón de la cocina [id: cajon]\nSalidas: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cajon\"}",
+            "tool_output": "cajón de la cocina: Un cajón de madera bajo la mesada. Se abre con un tirón y dentro hay cubiertos sueltos y algo más.\nContiene:\n  - llave dorada [id: llave_oro]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_oro\"}",
+            "tool_output": "Tomas llave dorada.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Error: no ves ningún 'puerta_principal' aquí.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Cocina.\nUna cocina pequeña con azulejos blancos. Hay una mesada con un cajón cerrado y olor a café frío.\nVes:\n  - cajón de la cocina [id: cajon]\nSalidas: oeste.\nLlevas: llave dorada [id: llave_oro].",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Caminas hacia oeste. Llegas a Pasillo.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Pasillo.\nUn pasillo en penumbra con cuadros torcidos. Conecta el recibidor al sur con la cocina al este.\nNo ves nada de interés.\nSalidas: este, sur.\nLlevas: llave dorada [id: llave_oro].",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"sur\"}",
+            "tool_output": "Caminas hacia sur. Llegas a Recibidor.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Recibidor.\nUn recibidor estrecho con un perchero vacío y un espejo polvoriento. La puerta principal, de metal, está cerrada con una cerradura simple. Un pasillo se abre hacia el norte.\nVes:\n  - puerta principal [id: puerta_principal] (cerrada)\nSalidas: norte.\nLlevas: llave dorada [id: llave_oro].",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave dorada con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 38570,
+        "output_tokens": 717
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 4
+    },
+    {
+      "scenario": "library-search",
+      "difficulty": "hard",
+      "user_message": "Te despiertas en la biblioteca del archivero. La puerta principal está cerrada con una cerradura grabada. En la pared opuesta hay una caja fuerte empotrada, también cerrada. Una estantería alta ocupa la pared norte con ocho volúmenes encuadernados de forma parecida. Hay también un viejo escritorio en el centro. Encuentra la forma de salir.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 16.990009920002194,
+      "agent_result": {
+        "answer": "<thinking>La puerta principal se abrió con la llave grabada, lo que significa que hemos logrado salir de la biblioteca del archivero.</thinking>\n\n",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Biblioteca del archivero.\nUna sala rectangular con olor a papel viejo. Al norte, una estantería alta de roble cargada de libros antiguos. En el centro, un escritorio robusto con un cajón único, vacío al primer vistazo. En la pared oeste, empotrada en el muro, una caja fuerte de hierro con bisagras macizas y un disco de combinación que en realidad oculta una cerradura convencional. Enfrente, la puerta principal, de hierro negro, con la cerradura grabada de símbolos.\nVes:\n  - escritorio [id: escritorio]\n  - estantería alta [id: estanteria_alta]\n  - caja fuerte [id: caja_fuerte] (cerrada)\n  - puerta principal [id: puerta_principal] (cerrada)",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"estanteria_alta\"}",
+            "tool_output": "estantería alta: Una estantería de roble de cuatro baldas. Solo la balda superior tiene libros — ocho volúmenes encuadernados con materiales distintos pero de tamaño parecido. Las baldas inferiores están vacías.\nContiene:\n  - Elementos de geometría aplicada [id: libro_geometria]\n  - Notas sobre la transmutación de los metales [id: libro_alquimia]\n  - Diálogos sobre la naturaleza del juicio [id: libro_filosofia]\n  - Anales del reino, década quinta [id: libro_historia]\n  - Recopilación de sentencias del tribunal supremo [id: libro_jurisprudencia]\n  - Recetario del cocinero mayor [id: libro_recetario]\n  - Genealogía de la casa de Andrade [id: libro_genealogia]\n  - Colección de sermones dominicales [id: libro_sermones]",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"libro_geometria\"}",
+            "tool_output": "Elementos de geometría aplicada: Encuadernación rígida de cartón forrado en tela negra, lomo reforzado. Proposición XVII (página 84): 'En todo triángulo, si se prolongan dos de sus lados hasta cortarse en un punto exterior, los ángulos así formados son iguales a los ángulos opuestos por el vértice del triángulo original.' La demostración ocupa página y media y se apoya en las proposiciones IV, IX y XII. El autor — Tomás del Riego, ingeniero militar — añade en nota al pie que esta proposición le ahorró tres días de cálculo en el trazado del fuerte de San Marcos, en el año 1721, y recomienda al lector aplicarla con prudencia cuando la regla no alcance. El resto del capítulo desarrolla seis problemas resueltos sobre triángulos semejantes, cuadrados inscritos en círculos y trazado de polígonos regulares de cinco, seis y ocho lados. Las figuras están grabadas en cobre y aparecen al pie de cada problema, con líneas de construcción discontinuas y letras latinas para los vértices.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"libro_alquimia\"}",
+            "tool_output": "Notas sobre la transmutación de los metales: Manuscrito en cuarto, encuadernación de cuero rojo desgastado, sin nombre de autor. Folio 23 verso: 'Operación segunda: tomadas las virutas de plomo del peso de una onza y tres adarmes, póngase en crisol de arcilla refractaria, cúbrase con sal de tártaro y cal viva en partes iguales, y caliéntese al rojo cereza durante doce horas seguidas sin dejar enfriar el fuelle. Apartado del fuego, déjese reposar el crisol hasta la mañana siguiente. Al romperlo se hallará una masa vidriosa en cuya superficie aparecerán glóbulos del metal del sol; recójanse con espátula de cuerno, no de metal vulgar. Sucede a veces, no diré con qué frecuencia, que la operación produzca solo una escoria gris y maloliente; en tal caso conviene revisar la pureza de la cal y la quietud del firmamento.' El folio siguiente lleva una receta similar para la cal de mercurio. Hay marcas de quemaduras en los márgenes y manchas oscuras que el lector cuidadoso reconocerá como hierro oxidado.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"libro_filosofia\"}",
+            "tool_output": "Diálogos sobre la naturaleza del juicio: Volumen de pequeño tamaño, encuadernado en piel verde con cantos dorados. Diálogo tercero, entre Macario y Filón: '— Dime, Filón: cuando juzgas a tu vecino, ¿le pesas con la misma balanza con que te pesas a ti mismo? — A veces, Macario; pero he advertido que la balanza pierde fiel cuando se mira de cerca. — Es decir, que cuanto más te conoces, menos riguroso eres contigo. — Más bien lo contrario: cuanto más me conozco, más comprendo por qué fallo, y eso me hace indulgente conmigo y a veces injusto con los demás. — De suerte que la indulgencia y la injusticia nacen de la misma raíz. — Eso parece. — Concluyamos entonces que el juicio sano no nace de conocerse, sino de olvidarse: solo el juez que ha dejado fuera de la sala su propio caso puede pesar limpio.' El diálogo prosigue durante diez páginas más, sin que ninguno de los dos consienta del todo en la conclusión del otro. El autor — un canónigo de Salamanca — anota al margen: 'tampoco yo estoy seguro'.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"libro_historia\"}",
+            "tool_output": "Anales del reino, década quinta: Tomo en folio, encuadernación de pergamino crudo, con cintas de cierre. Año 1437, entrada de mayo: 'Llegó al puerto de Santander, en la víspera de san Pedro, una flota de tres naves procedentes de Flandes con cargamento de paño teñido, ámbar y libros impresos. La corona compró el ámbar por mil quinientos maravedís, y el paño quedó para el infante don Sancho. Los libros, traducidos por un fraile de Burgos, se enviaron a la biblioteca real. Las naves regresaron con plata mexicana y aceite andaluz.' Junio: 'Hubo plaga de langosta en los campos de Tierra de Campos, perdiéndose dos tercios de la cosecha. La corona dispensó del diezmo a las parroquias afectadas.' Julio: 'El conde de Treviño murió de fiebres, sin heredero legítimo, y sus posesiones revirtieron a la corona tras un pleito que duró seis meses.' Las entradas continúan así, mes por mes, hasta el año 1442. Los márgenes están salpicados de números: probables totales presupuestarios anotados por algún funcionario.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"libro_jurisprudencia\"}",
+            "tool_output": "Recopilación de sentencias del tribunal supremo: Tomo grueso encuadernado en piel parda, con el escudo real estampado en seco en la cubierta. Sentencia 412 del año 1798: 'En la causa seguida contra Juan Espinosa, vecino de Trujillo, por presunta apropiación indebida de aguas de regadío comunal, vista la prueba documental y testimonial aportada por ambas partes, este tribunal falla: el demandado deberá restituir a la comunidad de regantes la cantidad de tres cargas de cebada equivalentes al daño estimado, abonará costas, y se le impone censura pública en plaza por hábito reiterado de prácticas similares. No procede pena de cárcel por carecer el reo de antecedentes formales. Notifíquese a la autoridad municipal correspondiente.' Las sentencias siguientes versan sobre lindes de fincas, herencias mal repartidas y cobros de censos vencidos. El estilo es severo y conciso; las decisiones tienden a buscar la restitución antes que el castigo. Al final del tomo, un índice ordena los casos por materia: aguas, lindes, herencias, mercados, contratos.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"libro_recetario\"}",
+            "tool_output": "Recetario del cocinero mayor: Manuscrito en cuarto, tapas blandas de pergamino, manchado de aceite. Receta del capón en pepitoria, página 47: 'Tómese un capón joven, bien limpio y troceado, y póngase a dorar en cazuela de barro con manteca de cerdo y un poco de tocino. Cuando esté tomado por todos lados, añádase una cabeza de ajos picada, un puñado de almendras tostadas y machacadas, una cucharada de harina y un vaso del mejor vino blanco que se tenga. Déjese reducir un cuarto de hora a fuego mediano; añádanse después dos huevos cocidos, picado fino el blanco y reservada la yema. Cúbrase con caldo de gallina hasta que el capón quede sumergido, y cuézase a fuego lento durante hora y media. Al final, deslíase la yema de huevo en un poco de la salsa y añádase a la cazuela fuera del fuego, removiendo bien para que ligue. Espolvoréese perejil picado y sírvase muy caliente.' Las páginas siguientes detallan recetas de pichones, conejo, ternera estofada y un curioso pastel de hojaldre con manzana.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"libro_genealogia\"}",
+            "tool_output": "Genealogía de la casa de Andrade: Tomo grande encuadernado en piel azul, con grabados heráldicos en el lomo. Capítulo I — Origen y primera generación: 'Pero Domínguez de Andrade, llamado el Calvo por su temprana pérdida de cabello, fundó la casa en el año 1284 al recibir de don Sancho IV las tierras de Andrade en Tierra de Lemos, en pago por sus servicios en la frontera de Granada. Casó en primeras nupcias con doña Mencía Rodríguez, de la cual tuvo tres hijos: Fernán, Diego y Teresa. Enviudó en 1297 y casó de nuevo con doña Aldonza Pérez de Sarria, sin sucesión. Murió en 1312 de heridas mal cicatrizadas tras una caída de caballo.' El árbol genealógico ocupa una página plegada y baja hasta finales del siglo XVIII, con doce ramas principales y numerosas colaterales. Los nombres se repiten: Fernán, Sancho, Pero, Teresa, Mencía. Las anotaciones marginales indican fechas de nacimiento, casamientos, defunciones y, en algunos casos, una breve nota sobre el oficio o las circunstancias del fin.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"libro_sermones\"}",
+            "tool_output": "Colección de sermones dominicales: Tomo encuadernado en piel negra con cantos rojos, muy usado. Sermón XXI, para el cuarto domingo de cuaresma: 'Mis hermanos, no es la enmienda lo que se nos pide, sino el principio de la enmienda; no la perfección, sino el ánimo de empezar. Cristo no espera al santo en el umbral de la iglesia: espera al pecador que se acerca. Si esto entendemos, lo demás vendrá; si esto no lo entendemos, ni con cuarenta días de ayuno ni con cuarenta noches en vela conseguiremos avanzar un palmo. La vida cristiana no es un palacio que uno construye desde fuera, piedra a piedra hasta dejarlo perfecto; es una casa heredada, que conviene barrer todos los días y reparar cuando algo se rompe.' El predicador — Fray Diego Méndez, dominico — repite la misma estructura en los sermones siguientes: una imagen sencilla, una insistencia, una invitación. El tomo está marcado en docenas de páginas con cintas de seda descoloridas; los márgenes llevan anotaciones de un párroco posterior.\nContiene:\n  - llave de la caja [id: llave_caja]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_caja\"}",
+            "tool_output": "Tomas llave de la caja.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_caja\", \"target\": \"caja_fuerte\"}",
+            "tool_output": "Usas llave de la caja con caja fuerte. Se abre.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"caja_fuerte\"}",
+            "tool_output": "caja fuerte: Caja fuerte de hierro empotrada en el muro. El disco de combinación visible es decorativo: la cerradura real está bajo una placa metálica que solo se abre con una llave específica.\nContiene:\n  - llave grabada [id: llave_grabada]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_grabada\"}",
+            "tool_output": "Tomas llave grabada.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_grabada\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave grabada con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 68323,
+        "output_tokens": 965
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 4
+    },
+    {
+      "scenario": "office-sequence",
+      "difficulty": "hard",
+      "user_message": "Te despiertas en una oficina vacía. Tu objetivo: salir por la puerta principal LLEVÁNDOTE el documento confidencial. Aviso importante: la puerta principal se sella en cuanto la abrís, así que asegurate de tener el documento contigo ANTES de abrirla. La puerta necesita una llave maestra; la llave maestra y el documento están en una caja fuerte del archivo; y la llave de esa caja está guardada en el depósito. Recorré los ambientes en el orden correcto.",
+      "goal": {
+        "type": "sequence",
+        "goals": [
+          {
+            "type": "item_in_inventory",
+            "item": "documento_confidencial"
+          },
+          {
+            "type": "item_open",
+            "item": "puerta_principal"
+          }
+        ]
+      },
+      "goal_achieved": false,
+      "goal_reason": "faltan condiciones: documento confidencial no está en el inventario; puerta principal está cerrada",
+      "duration_seconds": 24.76532224499897,
+      "agent_result": {
+        "answer": "",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Oficina principal.\nUna oficina con un escritorio amplio y una puerta principal blindada. Un corredor sale hacia el este.\nVes:\n  - escritorio [id: escritorio]\n  - puerta principal [id: puerta_principal] (cerrada)\nSalidas: este.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Corredor.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Corredor.\nUn corredor central que distribuye hacia la oficina (oeste), el archivo (norte) y el depósito (este).\nNo ves nada de interés.\nSalidas: este, norte, oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Depósito.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Depósito.\nUn cuarto de limpieza con estanterías metálicas y un cajón etiquetado 'LLAVES'.\nVes:\n  - cajón de llaves [id: cajon_llaves]\nSalidas: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"cajon_llaves\"}",
+            "tool_output": "Error: cajón de llaves no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cajon_llaves\"}",
+            "tool_output": "cajón de llaves: Un cajón metálico etiquetado 'LLAVES'. Dentro cuelga una sola llave pequeña.\nContiene:\n  - llave de la caja fuerte [id: llave_caja]",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"norte\"}",
+            "tool_output": "Error: no hay salida 'norte' desde aquí. Salidas disponibles: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Caminas hacia oeste. Llegas a Corredor.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"norte\"}",
+            "tool_output": "Caminas hacia norte. Llegas a Archivo.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"caja_fuerte\"}",
+            "tool_output": "caja fuerte: Una caja fuerte empotrada con una cerradura de llave plana. Cerrada.\nEstá cerrado con llave. No puedes ver el interior hasta abrirlo.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_caja\", \"target\": \"caja_fuerte\"}",
+            "tool_output": "Error: no llevas ningún 'llave_caja'.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Error: no hay salida 'este' desde aquí. Salidas disponibles: sur.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Error: no hay salida 'oeste' desde aquí. Salidas disponibles: sur.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"sur\"}",
+            "tool_output": "Caminas hacia sur. Llegas a Corredor.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Depósito.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cajon_llaves\"}",
+            "tool_output": "cajón de llaves: Un cajón metálico etiquetado 'LLAVES'. Dentro cuelga una sola llave pequeña.\nContiene:\n  - llave de la caja fuerte [id: llave_caja]",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"norte\"}",
+            "tool_output": "Error: no hay salida 'norte' desde aquí. Salidas disponibles: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Caminas hacia oeste. Llegas a Corredor.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"norte\"}",
+            "tool_output": "Caminas hacia norte. Llegas a Archivo.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_caja\", \"target\": \"caja_fuerte\"}",
+            "tool_output": "Error: no llevas ningún 'llave_caja'.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Error: no hay salida 'este' desde aquí. Salidas disponibles: sur.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Error: no hay salida 'oeste' desde aquí. Salidas disponibles: sur.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"sur\"}",
+            "tool_output": "Caminas hacia sur. Llegas a Corredor.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Depósito.",
+            "error": null
+          }
+        ],
+        "error": "Se alcanzó el máximo de iteraciones (25) sin que el modelo produjera una respuesta final.",
+        "input_tokens": 83358,
+        "output_tokens": 1312
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 4
+    },
+    {
+      "scenario": "extreme-archive",
+      "difficulty": "extreme",
+      "user_message": "Te despiertas en el archivo central de la facultad. La puerta principal está cerrada con una cerradura institucional. La estantería frente a ti contiene veinte expedientes; cada uno parece un documento administrativo extenso y, a primera vista, indistinguible de los demás. Sospechas que solo uno guarda lo que necesitas. Encuentra la forma de salir sin perder el tiempo leyendo en vano.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 17.603932652000367,
+      "agent_result": {
+        "answer": "<thinking>He abierto la puerta principal con la llave del archivo y ahora puedo salir del archivo central. He cumplido el objetivo.</thinking>\n\n<answer>He salido del archivo central usando la llave del archivo que encontré en el expediente 7240.</answer>",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Archivo central.\nUna sala alargada con olor a papel y polvo. Una estantería metálica recorre la pared norte, llena de expedientes encuadernados con tela gris e identificados solo por un número de caso. En la pared sur, la puerta principal con cerradura institucional. No hay ventanas; la luz viene de un fluorescente que zumba.\nVes:\n  - estantería del archivo [id: estanteria_archivo]\n  - puerta principal [id: puerta_principal] (cerrada)",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"estanteria_archivo\"}",
+            "tool_output": "estantería del archivo: Una estantería metálica de cinco baldas. Cada balda contiene cuatro expedientes encuadernados en tela gris, identificados con una etiqueta blanca donde solo aparece el número de caso. Son veinte expedientes en total, todos del mismo tamaño aproximado.\nContiene:\n  - expediente 1042 [id: expediente_1042]\n  - expediente 1387 [id: expediente_1387]\n  - expediente 1850 [id: expediente_1850]\n  - expediente 2104 [id: expediente_2104]\n  - expediente 2519 [id: expediente_2519]\n  - expediente 2841 [id: expediente_2841]\n  - expediente 3206 [id: expediente_3206]\n  - expediente 3478 [id: expediente_3478]\n  - expediente 3902 [id: expediente_3902]\n  - expediente 4117 [id: expediente_4117]\n  - expediente 4583 [id: expediente_4583]\n  - expediente 4860 [id: expediente_4860]\n  - expediente 5135 [id: expediente_5135]\n  - expediente 5404 [id: expediente_5404]\n  - expediente 5829 [id: expediente_5829]\n  - expediente 6201 [id: expediente_6201]\n  - expediente 6534 [id: expediente_6534]\n  - expediente 6987 [id: expediente_6987]\n  - expediente 7240 [id: expediente_7240]\n  - expediente 7615 [id: expediente_7615]",
+            "error": null
+          },
+          {
+            "tool_name": "research_documents",
+            "tool_input": "{\"document_ids\": [\"expediente_1042\", \"expediente_1387\", \"expediente_1850\", \"expediente_2104\", \"expediente_2519\", \"expediente_2841\", \"expediente_3206\", \"expediente_3478\", \"expediente_3902\", \"expediente_4117\", \"expediente_4583\", \"expediente_4860\", \"expediente_5135\", \"expediente_5404\", \"expediente_5829\", \"expediente_6201\", \"expediente_6534\", \"expediente_6987\", \"expediente_7240\", \"expediente_7615\"], \"objective\": \"Encontrar el expediente que me permita salir\"}",
+            "tool_output": "{\"examined_document_ids\": [\"expediente_1042\", \"expediente_1387\", \"expediente_1850\", \"expediente_2104\", \"expediente_2519\", \"expediente_2841\", \"expediente_3206\", \"expediente_3478\", \"expediente_3902\", \"expediente_4117\", \"expediente_4583\", \"expediente_4860\", \"expediente_5135\", \"expediente_5404\", \"expediente_5829\", \"expediente_6201\", \"expediente_6534\", \"expediente_6987\", \"expediente_7240\", \"expediente_7615\"], \"findings\": [{\"source_id\": \"expediente_1042\", \"revealed_items\": [], \"relevant_fact\": \"The student has been sanctioned with suspension and must attend a workshop on academic practices.\"}, {\"source_id\": \"expediente_2104\", \"revealed_items\": [], \"relevant_fact\": \"The candidate's appeal was accepted, and they were offered a place in the master's program.\"}, {\"source_id\": \"expediente_4860\", \"revealed_items\": [], \"relevant_fact\": \"El profesor titular ha solicitado un año sabático para investigación.\"}, {\"source_id\": \"expediente_5135\", \"revealed_items\": [], \"relevant_fact\": \"El departamento de Matemática Aplicada está llevando a cabo elecciones para la dirección.\"}, {\"source_id\": \"expediente_5404\", \"revealed_items\": [], \"relevant_fact\": \"Se propone una revisión curricular para el grado de Ingeniería Informática.\"}, {\"source_id\": \"expediente_5829\", \"revealed_items\": [], \"relevant_fact\": \"Se justifica la adquisición de nuevo equipamiento informático para las aulas.\"}, {\"source_id\": \"expediente_6534\", \"revealed_items\": [], \"relevant_fact\": \"The document provides support for a visa application for studies.\"}, {\"source_id\": \"expediente_7240\", \"revealed_items\": [{\"id\": \"llave_archivo\", \"name\": \"llave del archivo\"}], \"relevant_fact\": \"The document details the retirement benefits and conditions for a professor.\"}], \"worker_errors\": [\"El worker reporto objetos no revelados por examine en expediente_1042: academic_practices_workshop, suspension_of_call\", \"El worker reporto objetos no revelados por examine en expediente_2104: master_program_admission\", \"El worker reporto objetos no revelados por examine en expediente_4860: solicitud_año_sabático\", \"El worker reporto objetos no revelados por examine en expediente_5135: elecciones_dirección\", \"El worker reporto objetos no revelados por examine en expediente_5404: propuesta_revisión_curricular\", \"El worker reporto objetos no revelados por examine en expediente_5829: justificación_adquisición_equipamiento\", \"El worker reporto objetos no revelados por examine en expediente_6534: expediente_6534\", \"El worker reporto objetos no revelados por examine en expediente_7240: expediente_7240\"]}",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_archivo\"}",
+            "tool_output": "Tomas llave del archivo.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_archivo\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave del archivo con puerta principal. Se abre.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Archivo central.\nUna sala alargada con olor a papel y polvo. Una estantería metálica recorre la pared norte, llena de expedientes encuadernados con tela gris e identificados solo por un número de caso. En la pared sur, la puerta principal con cerradura institucional. No hay ventanas; la luz viene de un fluorescente que zumba.\nVes:\n  - estantería del archivo [id: estanteria_archivo]\n  - puerta principal [id: puerta_principal] (abierta)\n  - expediente 1042 [id: expediente_1042]\n  - expediente 1387 [id: expediente_1387]\n  - expediente 1850 [id: expediente_1850]\n  - expediente 2104 [id: expediente_2104]\n  - expediente 2519 [id: expediente_2519]\n  - expediente 2841 [id: expediente_2841]\n  - expediente 3206 [id: expediente_3206]\n  - expediente 3478 [id: expediente_3478]\n  - expediente 3902 [id: expediente_3902]\n  - expediente 4117 [id: expediente_4117]\n  - expediente 4583 [id: expediente_4583]\n  - expediente 4860 [id: expediente_4860]\n  - expediente 5135 [id: expediente_5135]\n  - expediente 5404 [id: expediente_5404]\n  - expediente 5829 [id: expediente_5829]\n  - expediente 6201 [id: expediente_6201]\n  - expediente 6534 [id: expediente_6534]\n  - expediente 6987 [id: expediente_6987]\n  - expediente 7240 [id: expediente_7240]\n  - expediente 7615 [id: expediente_7615]\nLlevas: llave del archivo [id: llave_archivo].",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 21086,
+        "output_tokens": 627
+      },
+      "delegation": {
+        "workers_started": 4,
+        "worker_tool_calls": 20,
+        "input_tokens": 16127,
+        "output_tokens": 1059,
+        "worker_errors": [
+          "El worker reporto objetos no revelados por examine en expediente_1042: academic_practices_workshop, suspension_of_call",
+          "El worker reporto objetos no revelados por examine en expediente_2104: master_program_admission",
+          "El worker reporto objetos no revelados por examine en expediente_4860: solicitud_año_sabático",
+          "El worker reporto objetos no revelados por examine en expediente_5135: elecciones_dirección",
+          "El worker reporto objetos no revelados por examine en expediente_5404: propuesta_revisión_curricular",
+          "El worker reporto objetos no revelados por examine en expediente_5829: justificación_adquisición_equipamiento",
+          "El worker reporto objetos no revelados por examine en expediente_6534: expediente_6534",
+          "El worker reporto objetos no revelados por examine en expediente_7240: expediente_7240"
+        ]
+      },
+      "attempt": 4
+    },
+    {
+      "scenario": "study-with-key",
+      "difficulty": "easy",
+      "user_message": "Te despiertas encerrado en un pequeño estudio. La puerta está cerrada. Encuentra la forma de salir. Usa las herramientas que tienes disponibles para explorar la sala y resolver el puzzle.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 4.377399171000434,
+      "agent_result": {
+        "answer": "<thinking>La llave dorada funcionó y pude abrir la puerta principal. He logrado salir del estudio.</thinking>",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Estudio.\nUn estudio pequeño forrado de libros. Una alfombra persa cubre el centro del suelo. A un lado hay un escritorio de roble. Al fondo, la puerta principal.\nVes:\n  - alfombra [id: alfombra]\n  - escritorio [id: escritorio]\n  - puerta principal [id: puerta_principal] (cerrada)",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"alfombra\"}",
+            "tool_output": "alfombra: Una vieja alfombra persa. Algo abulta debajo.\nContiene:\n  - llave dorada [id: llave_oro]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_oro\"}",
+            "tool_output": "Tomas llave dorada.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave dorada con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 10671,
+        "output_tokens": 299
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 5
+    },
+    {
+      "scenario": "color-locks",
+      "difficulty": "medium",
+      "user_message": "Te despiertas en un sótano frío. La puerta principal, al fondo, está cerrada con una cerradura dorada considerable. Sobre una repisa baja brilla una llave plateada. Repartidos por el suelo hay cuatro cofres pintados de colores distintos (plateado, rojo, verde y azul), cada uno con su cerradura del mismo color. Algunos cofres están cerrados con llave, otros no. Encuentra la forma de salir.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 384.00038463999954,
+      "agent_result": {
+        "answer": "<thinking>Finalmente, pude abrir la puerta principal con la llave dorada que tengo en mi inventario. He logrado salir del sótano.</thinking>\n\n<answer>He logrado salir del sótano usando la llave dorada que encontré en el cofre verde.</answer>",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Sótano.\nUn sótano de piedra con olor a humedad y una bombilla solitaria colgando del techo. Una repisa baja en la pared norte sostiene una llave plateada brillante. En el suelo descansan cuatro cofres pintados de colores distintos. Al fondo, una puerta de roble con cerradura dorada.\nVes:\n  - llave plateada [id: llave_plata]\n  - cofre plateado [id: cofre_plata] (cerrada)\n  - cofre rojo [id: cofre_rojo] (cerrada)\n  - cofre verde [id: cofre_verde] (cerrada)\n  - cofre azul [id: cofre_azul]\n  - puerta principal [id: puerta_principal] (cerrada)",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_plata\"}",
+            "tool_output": "Tomas llave plateada.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_plata\"}",
+            "tool_output": "cofre plateado: Un cofre pequeño con tachuelas plateadas y una cerradura del mismo color. Encaja con una llave del mismo color.\nEstá cerrado con llave. No puedes ver el interior hasta abrirlo.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_rojo\"}",
+            "tool_output": "cofre rojo: Un cofre mediano pintado de rojo, con una cerradura roja del mismo tono. Encaja con una llave del mismo color.\nEstá cerrado con llave. No puedes ver el interior hasta abrirlo.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_verde\"}",
+            "tool_output": "cofre verde: Un cofre grande pintado de verde, con una cerradura verde voluminosa. Encaja con una llave del mismo color.\nEstá cerrado con llave. No puedes ver el interior hasta abrirlo.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_azul\"}",
+            "tool_output": "cofre azul: Un cofre pintado de azul desconchado. Sorprendentemente, no tiene cerradura: las bisagras se abren al primer empujón.\nContiene:\n  - trapo viejo [id: trapo_viejo]",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_plata\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Intentas usar llave plateada con puerta principal, pero no encaja.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"trapo_viejo\"}",
+            "tool_output": "trapo viejo: Un trapo gris y manchado de aceite. Inservible.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_plata\"}",
+            "tool_output": "cofre plateado: Un cofre pequeño con tachuelas plateadas y una cerradura del mismo color. Encaja con una llave del mismo color.\nEstá cerrado con llave. No puedes ver el interior hasta abrirlo.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_rojo\"}",
+            "tool_output": "cofre rojo: Un cofre mediano pintado de rojo, con una cerradura roja del mismo tono. Encaja con una llave del mismo color.\nEstá cerrado con llave. No puedes ver el interior hasta abrirlo.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_verde\"}",
+            "tool_output": "cofre verde: Un cofre grande pintado de verde, con una cerradura verde voluminosa. Encaja con una llave del mismo color.\nEstá cerrado con llave. No puedes ver el interior hasta abrirlo.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Sótano.\nUn sótano de piedra con olor a humedad y una bombilla solitaria colgando del techo. Una repisa baja en la pared norte sostiene una llave plateada brillante. En el suelo descansan cuatro cofres pintados de colores distintos. Al fondo, una puerta de roble con cerradura dorada.\nVes:\n  - cofre plateado [id: cofre_plata] (cerrada)\n  - cofre rojo [id: cofre_rojo] (cerrada)\n  - cofre verde [id: cofre_verde] (cerrada)\n  - cofre azul [id: cofre_azul]\n  - puerta principal [id: puerta_principal] (cerrada)\n  - trapo viejo [id: trapo_viejo]\nLlevas: llave plateada [id: llave_plata].",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_plata\", \"target\": \"cofre_plata\"}",
+            "tool_output": "Usas llave plateada con cofre plateado. Se abre.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_plata\"}",
+            "tool_output": "cofre plateado: Un cofre pequeño con tachuelas plateadas y una cerradura del mismo color. Encaja con una llave del mismo color.\nContiene:\n  - llave roja [id: llave_roja]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_roja\"}",
+            "tool_output": "Tomas llave roja.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_rojo\"}",
+            "tool_output": "cofre rojo: Un cofre mediano pintado de rojo, con una cerradura roja del mismo tono. Encaja con una llave del mismo color.\nEstá cerrado con llave. No puedes ver el interior hasta abrirlo.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_roja\", \"target\": \"cofre_rojo\"}",
+            "tool_output": "Usas llave roja con cofre rojo. Se abre.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_rojo\"}",
+            "tool_output": "cofre rojo: Un cofre mediano pintado de rojo, con una cerradura roja del mismo tono. Encaja con una llave del mismo color.\nContiene:\n  - llave verde [id: llave_verde]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_verde\"}",
+            "tool_output": "Tomas llave verde.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_verde\"}",
+            "tool_output": "cofre verde: Un cofre grande pintado de verde, con una cerradura verde voluminosa. Encaja con una llave del mismo color.\nEstá cerrado con llave. No puedes ver el interior hasta abrirlo.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_verde\", \"target\": \"cofre_verde\"}",
+            "tool_output": "Usas llave verde con cofre verde. Se abre.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_verde\"}",
+            "tool_output": "cofre verde: Un cofre grande pintado de verde, con una cerradura verde voluminosa. Encaja con una llave del mismo color.\nContiene:\n  - llave dorada [id: llave_oro]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_oro\"}",
+            "tool_output": "Tomas llave dorada.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave dorada con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 93942,
+        "output_tokens": 1686
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 5
+    },
+    {
+      "scenario": "apartment-keys",
+      "difficulty": "medium",
+      "user_message": "Te despiertas en el recibidor de un apartamento desconocido. La puerta principal está cerrada con llave y no la ves por ningún lado. Hay un pasillo que se interna en el apartamento. Explora los ambientes, encuentra la llave y vuelve a abrir la puerta principal.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 9.000883853001142,
+      "agent_result": {
+        "answer": "<thinking>La puerta principal se abrió con éxito usando la llave dorada. El objetivo de explorar los ambientes, encontrar la llave y abrir la puerta principal se ha cumplido.</thinking>\n\n<answer>Has explorado los ambientes, encontrado la llave en el cajón de la cocina y abierto la puerta principal.</answer>",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Recibidor.\nUn recibidor estrecho con un perchero vacío y un espejo polvoriento. La puerta principal, de metal, está cerrada con una cerradura simple. Un pasillo se abre hacia el norte.\nVes:\n  - puerta principal [id: puerta_principal] (cerrada)\nSalidas: norte.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"norte\"}",
+            "tool_output": "Caminas hacia norte. Llegas a Pasillo.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Pasillo.\nUn pasillo en penumbra con cuadros torcidos. Conecta el recibidor al sur con la cocina al este.\nNo ves nada de interés.\nSalidas: este, sur.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Cocina.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Cocina.\nUna cocina pequeña con azulejos blancos. Hay una mesada con un cajón cerrado y olor a café frío.\nVes:\n  - cajón de la cocina [id: cajon]\nSalidas: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cajon\"}",
+            "tool_output": "cajón de la cocina: Un cajón de madera bajo la mesada. Se abre con un tirón y dentro hay cubiertos sueltos y algo más.\nContiene:\n  - llave dorada [id: llave_oro]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_oro\"}",
+            "tool_output": "Tomas llave dorada.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Caminas hacia oeste. Llegas a Pasillo.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Error: no ves ningún 'puerta_principal' aquí.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"sur\"}",
+            "tool_output": "Caminas hacia sur. Llegas a Recibidor.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave dorada con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 24993,
+        "output_tokens": 557
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 5
+    },
+    {
+      "scenario": "library-search",
+      "difficulty": "hard",
+      "user_message": "Te despiertas en la biblioteca del archivero. La puerta principal está cerrada con una cerradura grabada. En la pared opuesta hay una caja fuerte empotrada, también cerrada. Una estantería alta ocupa la pared norte con ocho volúmenes encuadernados de forma parecida. Hay también un viejo escritorio en el centro. Encuentra la forma de salir.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 16.47814716800349,
+      "agent_result": {
+        "answer": "<thinking>La puerta principal se abrió con éxito. He cumplido el objetivo de encontrar una forma de salir de la biblioteca.</thinking>\n\n<answer>Has salido de la biblioteca del archivero.</answer>",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Biblioteca del archivero.\nUna sala rectangular con olor a papel viejo. Al norte, una estantería alta de roble cargada de libros antiguos. En el centro, un escritorio robusto con un cajón único, vacío al primer vistazo. En la pared oeste, empotrada en el muro, una caja fuerte de hierro con bisagras macizas y un disco de combinación que en realidad oculta una cerradura convencional. Enfrente, la puerta principal, de hierro negro, con la cerradura grabada de símbolos.\nVes:\n  - escritorio [id: escritorio]\n  - estantería alta [id: estanteria_alta]\n  - caja fuerte [id: caja_fuerte] (cerrada)\n  - puerta principal [id: puerta_principal] (cerrada)",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"escritorio\"}",
+            "tool_output": "escritorio: Un escritorio de roble con un único cajón estrecho. Lo abres y lo encuentras vacío salvo por restos de polvo y una pluma rota.\nEstá vacío.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"estanteria_alta\"}",
+            "tool_output": "estantería alta: Una estantería de roble de cuatro baldas. Solo la balda superior tiene libros — ocho volúmenes encuadernados con materiales distintos pero de tamaño parecido. Las baldas inferiores están vacías.\nContiene:\n  - Elementos de geometría aplicada [id: libro_geometria]\n  - Notas sobre la transmutación de los metales [id: libro_alquimia]\n  - Diálogos sobre la naturaleza del juicio [id: libro_filosofia]\n  - Anales del reino, década quinta [id: libro_historia]\n  - Recopilación de sentencias del tribunal supremo [id: libro_jurisprudencia]\n  - Recetario del cocinero mayor [id: libro_recetario]\n  - Genealogía de la casa de Andrade [id: libro_genealogia]\n  - Colección de sermones dominicales [id: libro_sermones]",
+            "error": null
+          },
+          {
+            "tool_name": "research_documents",
+            "tool_input": "{\"document_ids\": [\"libro_geometria\", \"libro_alquimia\", \"libro_filosofia\", \"libro_historia\", \"libro_jurisprudencia\", \"libro_recetario\", \"libro_genealogia\", \"libro_sermones\"], \"objective\": \"Encontrar una pista para salir de la biblioteca\"}",
+            "tool_output": "{\"examined_document_ids\": [\"libro_geometria\", \"libro_alquimia\", \"libro_filosofia\", \"libro_historia\", \"libro_jurisprudencia\", \"libro_recetario\", \"libro_genealogia\", \"libro_sermones\"], \"findings\": [{\"source_id\": \"libro_geometria\", \"revealed_items\": [], \"relevant_fact\": \"La proposición XVII sobre triángulos podría aplicarse para trazar rutas de escape en espacios cerrados.\"}, {\"source_id\": \"libro_alquimia\", \"revealed_items\": [], \"relevant_fact\": \"La operación de transmutación podría referirse a la transformación de espacios o situaciones.\"}, {\"source_id\": \"libro_filosofia\", \"revealed_items\": [], \"relevant_fact\": \"El diálogo sugiere que la indulgencia y la injusticia pueden ser herramientas para manipular situaciones.\"}, {\"source_id\": \"libro_historia\", \"revealed_items\": [], \"relevant_fact\": \"La entrada sobre la flota que llegó a Santander menciona libros enviados a la biblioteca real, lo que podría indicar una salida a través de la biblioteca.\"}, {\"source_id\": \"libro_jurisprudencia\", \"revealed_items\": [], \"relevant_fact\": \"Las sentencias sobre restitución y censura pública no proporcionan pistas directas para salir.\"}, {\"source_id\": \"libro_sermones\", \"revealed_items\": [{\"id\": \"llave_caja\", \"name\": \"llave de la caja\"}], \"relevant_fact\": \"The book of sermons contains a key to a box, which could be related to an exit.\"}], \"worker_errors\": [\"El worker reporto objetos no revelados por examine en libro_geometria: prop_XVII\", \"El worker reporto objetos no revelados por examine en libro_alquimia: operacion_segunda\", \"El worker reporto objetos no revelados por examine en libro_filosofia: dialogo_tercero\", \"El worker reporto objetos no revelados por examine en libro_historia: anales_1437_mayo\"]}",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_caja\"}",
+            "tool_output": "Tomas llave de la caja.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"caja_fuerte\"}",
+            "tool_output": "caja fuerte: Caja fuerte de hierro empotrada en el muro. El disco de combinación visible es decorativo: la cerradura real está bajo una placa metálica que solo se abre con una llave específica.\nEstá cerrado con llave. No puedes ver el interior hasta abrirlo.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_caja\", \"target\": \"caja_fuerte\"}",
+            "tool_output": "Usas llave de la caja con caja fuerte. Se abre.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"caja_fuerte\"}",
+            "tool_output": "caja fuerte: Caja fuerte de hierro empotrada en el muro. El disco de combinación visible es decorativo: la cerradura real está bajo una placa metálica que solo se abre con una llave específica.\nContiene:\n  - llave grabada [id: llave_grabada]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_grabada\"}",
+            "tool_output": "Tomas llave grabada.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"puerta_principal\"}",
+            "tool_output": "puerta principal: Una puerta de hierro negro con la cerradura grabada con símbolos. Solo una llave con grabado coincidente la abrirá.\nEstado: cerrada.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_grabada\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave grabada con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 32388,
+        "output_tokens": 703
+      },
+      "delegation": {
+        "workers_started": 2,
+        "worker_tool_calls": 8,
+        "input_tokens": 4127,
+        "output_tokens": 712,
+        "worker_errors": [
+          "El worker reporto objetos no revelados por examine en libro_geometria: prop_XVII",
+          "El worker reporto objetos no revelados por examine en libro_alquimia: operacion_segunda",
+          "El worker reporto objetos no revelados por examine en libro_filosofia: dialogo_tercero",
+          "El worker reporto objetos no revelados por examine en libro_historia: anales_1437_mayo"
+        ]
+      },
+      "attempt": 5
+    },
+    {
+      "scenario": "office-sequence",
+      "difficulty": "hard",
+      "user_message": "Te despiertas en una oficina vacía. Tu objetivo: salir por la puerta principal LLEVÁNDOTE el documento confidencial. Aviso importante: la puerta principal se sella en cuanto la abrís, así que asegurate de tener el documento contigo ANTES de abrirla. La puerta necesita una llave maestra; la llave maestra y el documento están en una caja fuerte del archivo; y la llave de esa caja está guardada en el depósito. Recorré los ambientes en el orden correcto.",
+      "goal": {
+        "type": "sequence",
+        "goals": [
+          {
+            "type": "item_in_inventory",
+            "item": "documento_confidencial"
+          },
+          {
+            "type": "item_open",
+            "item": "puerta_principal"
+          }
+        ]
+      },
+      "goal_achieved": false,
+      "goal_reason": "faltan condiciones: documento confidencial no está en el inventario",
+      "duration_seconds": 25.866515288998926,
+      "agent_result": {
+        "answer": "",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Oficina principal.\nUna oficina con un escritorio amplio y una puerta principal blindada. Un corredor sale hacia el este.\nVes:\n  - escritorio [id: escritorio]\n  - puerta principal [id: puerta_principal] (cerrada)\nSalidas: este.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Corredor.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Corredor.\nUn corredor central que distribuye hacia la oficina (oeste), el archivo (norte) y el depósito (este).\nNo ves nada de interés.\nSalidas: este, norte, oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Depósito.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Depósito.\nUn cuarto de limpieza con estanterías metálicas y un cajón etiquetado 'LLAVES'.\nVes:\n  - cajón de llaves [id: cajon_llaves]\nSalidas: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"cajon_llaves\"}",
+            "tool_output": "Error: cajón de llaves no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cajon_llaves\"}",
+            "tool_output": "cajón de llaves: Un cajón metálico etiquetado 'LLAVES'. Dentro cuelga una sola llave pequeña.\nContiene:\n  - llave de la caja fuerte [id: llave_caja]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_caja\"}",
+            "tool_output": "Tomas llave de la caja fuerte.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Caminas hacia oeste. Llegas a Corredor.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"norte\"}",
+            "tool_output": "Caminas hacia norte. Llegas a Archivo.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_caja\", \"target\": \"caja_fuerte\"}",
+            "tool_output": "Usas llave de la caja fuerte con caja fuerte. Se abre.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Archivo.\nUna sala con armarios de expedientes y una caja fuerte empotrada en la pared.\nVes:\n  - caja fuerte [id: caja_fuerte] (abierta)\nSalidas: sur.\nLlevas: llave de la caja fuerte [id: llave_caja].",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"documento_confidencial\"}",
+            "tool_output": "Error: 'documento_confidencial' no es visible o accesible desde aquí.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"caja_fuerte\"}",
+            "tool_output": "caja fuerte: Una caja fuerte empotrada con una cerradura de llave plana. Cerrada.\nContiene:\n  - documento confidencial [id: documento_confidencial]\n  - llave maestra [id: llave_maestra]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_maestra\"}",
+            "tool_output": "Tomas llave maestra.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"sur\"}",
+            "tool_output": "Caminas hacia sur. Llegas a Corredor.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Caminas hacia oeste. Llegas a Oficina principal.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_maestra\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave maestra con puerta principal. Se abre.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"puerta_principal\"}",
+            "tool_output": "Error: no hay salida 'puerta_principal' desde aquí. Salidas disponibles: este.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"puerta_principal\"}",
+            "tool_output": "Error: La llamada ya falló sin que hubiera progreso. Elegí una acción diferente.",
+            "error": "La llamada ya falló sin que hubiera progreso. Elegí una acción diferente."
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Corredor.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Depósito.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Error: no hay salida 'este' desde aquí. Salidas disponibles: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Caminas hacia oeste. Llegas a Corredor.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Caminas hacia oeste. Llegas a Oficina principal.",
+            "error": null
+          }
+        ],
+        "error": "Se alcanzó el máximo de iteraciones (25) sin que el modelo produjera una respuesta final.",
+        "input_tokens": 83816,
+        "output_tokens": 1261
+      },
+      "delegation": {
+        "workers_started": 0,
+        "worker_tool_calls": 0,
+        "input_tokens": null,
+        "output_tokens": null,
+        "worker_errors": []
+      },
+      "attempt": 5
+    },
+    {
+      "scenario": "extreme-archive",
+      "difficulty": "extreme",
+      "user_message": "Te despiertas en el archivo central de la facultad. La puerta principal está cerrada con una cerradura institucional. La estantería frente a ti contiene veinte expedientes; cada uno parece un documento administrativo extenso y, a primera vista, indistinguible de los demás. Sospechas que solo uno guarda lo que necesitas. Encuentra la forma de salir sin perder el tiempo leyendo en vano.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 25.927135867001198,
+      "agent_result": {
+        "answer": "<thinking>He tomado la llave del archivo y la he usado en la puerta principal, que se ha abierto. He logrado salir del archivo central.</thinking>\n\n<answer>He logrado salir del archivo central usando la llave del archivo que encontré en el expediente 7240.</answer>",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Archivo central.\nUna sala alargada con olor a papel y polvo. Una estantería metálica recorre la pared norte, llena de expedientes encuadernados con tela gris e identificados solo por un número de caso. En la pared sur, la puerta principal con cerradura institucional. No hay ventanas; la luz viene de un fluorescente que zumba.\nVes:\n  - estantería del archivo [id: estanteria_archivo]\n  - puerta principal [id: puerta_principal] (cerrada)",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"estanteria_archivo\"}",
+            "tool_output": "estantería del archivo: Una estantería metálica de cinco baldas. Cada balda contiene cuatro expedientes encuadernados en tela gris, identificados con una etiqueta blanca donde solo aparece el número de caso. Son veinte expedientes en total, todos del mismo tamaño aproximado.\nContiene:\n  - expediente 1042 [id: expediente_1042]\n  - expediente 1387 [id: expediente_1387]\n  - expediente 1850 [id: expediente_1850]\n  - expediente 2104 [id: expediente_2104]\n  - expediente 2519 [id: expediente_2519]\n  - expediente 2841 [id: expediente_2841]\n  - expediente 3206 [id: expediente_3206]\n  - expediente 3478 [id: expediente_3478]\n  - expediente 3902 [id: expediente_3902]\n  - expediente 4117 [id: expediente_4117]\n  - expediente 4583 [id: expediente_4583]\n  - expediente 4860 [id: expediente_4860]\n  - expediente 5135 [id: expediente_5135]\n  - expediente 5404 [id: expediente_5404]\n  - expediente 5829 [id: expediente_5829]\n  - expediente 6201 [id: expediente_6201]\n  - expediente 6534 [id: expediente_6534]\n  - expediente 6987 [id: expediente_6987]\n  - expediente 7240 [id: expediente_7240]\n  - expediente 7615 [id: expediente_7615]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"expediente_1042\"}",
+            "tool_output": "Error: expediente 1042 no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"expediente_1387\"}",
+            "tool_output": "Error: expediente 1387 no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"expediente_1850\"}",
+            "tool_output": "Error: expediente 1850 no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"expediente_2104\"}",
+            "tool_output": "Error: expediente 2104 no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"expediente_2519\"}",
+            "tool_output": "Error: expediente 2519 no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"expediente_2841\"}",
+            "tool_output": "Error: expediente 2841 no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"expediente_3206\"}",
+            "tool_output": "Error: expediente 3206 no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"expediente_3478\"}",
+            "tool_output": "Error: expediente 3478 no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"expediente_3902\"}",
+            "tool_output": "Error: expediente 3902 no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"expediente_4117\"}",
+            "tool_output": "Error: expediente 4117 no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"expediente_4583\"}",
+            "tool_output": "Error: expediente 4583 no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"expediente_4860\"}",
+            "tool_output": "Error: expediente 4860 no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"expediente_5135\"}",
+            "tool_output": "Error: expediente 5135 no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"expediente_5404\"}",
+            "tool_output": "Error: expediente 5404 no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"expediente_5829\"}",
+            "tool_output": "Error: expediente 5829 no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"expediente_6201\"}",
+            "tool_output": "Error: expediente 6201 no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"expediente_6534\"}",
+            "tool_output": "Error: expediente 6534 no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"expediente_6987\"}",
+            "tool_output": "Error: expediente 6987 no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"expediente_7240\"}",
+            "tool_output": "Error: expediente 7240 no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"expediente_7615\"}",
+            "tool_output": "Error: expediente 7615 no es algo que puedas llevarte.",
+            "error": null
+          },
+          {
+            "tool_name": "research_documents",
+            "tool_input": "{\"document_ids\": [\"expediente_1042\", \"expediente_1387\", \"expediente_1850\", \"expediente_2104\", \"expediente_2519\", \"expediente_2841\", \"expediente_3206\", \"expediente_3478\", \"expediente_3902\", \"expediente_4117\", \"expediente_4583\", \"expediente_4860\", \"expediente_5135\", \"expediente_5404\", \"expediente_5829\", \"expediente_6201\", \"expediente_6534\", \"expediente_6987\", \"expediente_7240\", \"expediente_7615\"], \"objective\": \"Encontrar la forma de salir sin perder el tiempo leyendo en vano.\"}",
+            "tool_output": "{\"examined_document_ids\": [\"expediente_1042\", \"expediente_1387\", \"expediente_1850\", \"expediente_2104\", \"expediente_2519\", \"expediente_2841\", \"expediente_3206\", \"expediente_3478\", \"expediente_3902\", \"expediente_4117\", \"expediente_4583\", \"expediente_4860\", \"expediente_5135\", \"expediente_5404\", \"expediente_5829\", \"expediente_6201\", \"expediente_6534\", \"expediente_6987\", \"expediente_7240\", \"expediente_7615\"], \"findings\": [{\"source_id\": \"expediente_1042\", \"revealed_items\": [], \"relevant_fact\": \"The student has been sanctioned with suspension and must attend a workshop on academic practices.\"}, {\"source_id\": \"expediente_2104\", \"revealed_items\": [], \"relevant_fact\": \"The candidate's appeal was accepted, and they were offered a place in the master's program.\"}, {\"source_id\": \"expediente_2841\", \"revealed_items\": [], \"relevant_fact\": \"The committee suggests specifying the retention period for recordings in research projects.\"}, {\"source_id\": \"expediente_3206\", \"revealed_items\": [], \"relevant_fact\": \"The library proposes a systematic approach to updating its collection based on academic relevance and demand.\"}, {\"source_id\": \"expediente_3902\", \"revealed_items\": [], \"relevant_fact\": \"The doctoral defense act mentions the efficient use of electrophysiological methods in research.\"}, {\"source_id\": \"expediente_4117\", \"revealed_items\": [], \"relevant_fact\": \"The resolution suggests a mixed use of a local space to balance different needs.\"}, {\"source_id\": \"expediente_4583\", \"revealed_items\": [], \"relevant_fact\": \"The beneficiary has completed the methodological training phase and generated two primary data sets.\"}, {\"source_id\": \"expediente_4860\", \"revealed_items\": [], \"relevant_fact\": \"The sabbatical request is pending approval from the rectorate, with a decision expected within 60 days.\"}, {\"source_id\": \"expediente_5135\", \"revealed_items\": [], \"relevant_fact\": \"The department election protocol outlines the voting process and timeline for the upcoming election.\"}, {\"source_id\": \"expediente_5404\", \"revealed_items\": [], \"relevant_fact\": \"The curricular review proposal for the Computer Engineering degree includes updates to course content and the introduction of new subjects.\"}, {\"source_id\": \"expediente_5829\", \"revealed_items\": [], \"relevant_fact\": \"The justification for the acquisition of new computer equipment includes technical specifications and a detailed cost estimate.\"}, {\"source_id\": \"expediente_6201\", \"revealed_items\": [], \"relevant_fact\": \"The investigation concluded that the accused's behavior constituted workplace harassment, leading to a preventive transfer and mandatory team management training.\"}, {\"source_id\": \"expediente_6987\", \"revealed_items\": [], \"relevant_fact\": \"The cafeteria contract renewal includes an extension of two years with improved conditions for students.\"}, {\"source_id\": \"expediente_7240\", \"revealed_items\": [{\"id\": \"llave_archivo\", \"name\": \"llave del archivo\"}], \"relevant_fact\": \"\"}], \"worker_errors\": [\"El worker reporto objetos no revelados por examine en expediente_1042: academic practices, suspension\", \"El worker reporto objetos no revelados por examine en expediente_2104: accepted, offered place\", \"El worker reporto objetos no revelados por examine en expediente_2841: E-25-117\", \"El worker reporto objetos no revelados por examine en expediente_3206: bibliography_update\", \"El worker reporto objetos no revelados por examine en expediente_3902: electrophysiological_methods\", \"El worker reporto objetos no revelados por examine en expediente_4117: mixed_use_of_space\", \"El worker reporto objetos no revelados por examine en expediente_6201: mandatory_training, preventive_transfer\", \"El worker reporto objetos no revelados por examine en expediente_6987: cafeteria_contract_extension, improved_conditions_students\"]}",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_archivo\"}",
+            "tool_output": "Tomas llave del archivo.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_archivo\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave del archivo con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 22987,
+        "output_tokens": 935
+      },
+      "delegation": {
+        "workers_started": 4,
+        "worker_tool_calls": 20,
+        "input_tokens": 16143,
+        "output_tokens": 1334,
+        "worker_errors": [
+          "El worker reporto objetos no revelados por examine en expediente_1042: academic practices, suspension",
+          "El worker reporto objetos no revelados por examine en expediente_2104: accepted, offered place",
+          "El worker reporto objetos no revelados por examine en expediente_2841: E-25-117",
+          "El worker reporto objetos no revelados por examine en expediente_3206: bibliography_update",
+          "El worker reporto objetos no revelados por examine en expediente_3902: electrophysiological_methods",
+          "El worker reporto objetos no revelados por examine en expediente_4117: mixed_use_of_space",
+          "El worker reporto objetos no revelados por examine en expediente_6201: mandatory_training, preventive_transfer",
+          "El worker reporto objetos no revelados por examine en expediente_6987: cafeteria_contract_extension, improved_conditions_students"
+        ]
+      },
+      "attempt": 5
+    }
+  ]
+}

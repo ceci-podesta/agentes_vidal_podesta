@@ -21,11 +21,24 @@ from mia_agents.protocols import LLMClient
 from mia_agents.types import AgentResult, AgentStep, LLMResponse, ToolCall, ToolSchema
 from mia_agents.tool_schema import FINAL_RESULT_TOOL_NAME, final_result_tool_schema
 
+from .m3_planner import PLANNING_PROMPT_TEMPLATE, Plan, render_plan
 from .m3_scratchpad import M3Scratchpad
 
 
 _MAX_LLM_RETRIES = 3
-_TRANSIENT_KEYWORDS = ("timeout", "timed out", "rate limit", "throttl", "503", "502", "504")
+_TRANSIENT_KEYWORDS = (
+    "timeout",
+    "timed out",
+    "rate limit",
+    "throttl",
+    "503",
+    "502",
+    "504",
+    # Bedrock a veces genera un tool-call malformado por muestreo del modelo
+    # (no es un bug de nuestro payload): reintentar suele alcanzar.
+    "modelerrorexception",
+    "invalid sequence as part of tooluse",
+)
 
 
 @dataclass
@@ -78,6 +91,7 @@ class MyAgent:
         max_repeated_observations: int | None = None,
         observation_tool_names: set[str] | None = None,
         use_m3_scratchpad: bool = False,
+        use_m3_planner: bool = False,
     ) -> None:
         """Inicializa el agente.
 
@@ -113,6 +127,11 @@ class MyAgent:
         self._max_repeated_observations = max_repeated_observations
         self._observation_tool_names = set(observation_tool_names or set())
         self._use_m3_scratchpad = use_m3_scratchpad
+        self._use_m3_planner = use_m3_planner
+        # No forma parte de AgentResult (fijo, mia_agents/types.py): expone
+        # el ultimo plan generado para poder inspeccionarlo desde afuera
+        # (ver eval/manual_run.py), sin tocar el contrato de M1/M2.
+        self.last_plan_block: str | None = None
         self._tools: dict[str, Callable[..., str]] = {}
         self._schemas: dict[str, ToolSchema] = {}
         self._history: list[dict[str, Any]] = []#M2: Este atributo pertenece a la instancia y sobrevive entre llamadas sucesivas a run()
@@ -277,16 +296,37 @@ class MyAgent:
         total_output_tokens = 0
         has_token_usage = False
 
+        # M3: plan inicial opcional, generado con una unica llamada forzada
+        # (final_result, mecanismo de M2) antes de que el agente observe el
+        # mundo. Ver student_framework/m3_planner.py para la motivacion.
+        plan_block: str | None = None
+        self.last_plan_block = None
+        if self._use_m3_planner:
+            plan_result = self.structured_call_with_usage(
+                prompt=PLANNING_PROMPT_TEMPLATE.format(user_message=user_message),
+                schema=Plan,
+            )
+            plan_block = render_plan(plan_result.value)
+            self.last_plan_block = plan_block
+            if (
+                plan_result.usage.input_tokens is not None
+                or plan_result.usage.output_tokens is not None
+            ):
+                has_token_usage = True
+            total_input_tokens += plan_result.usage.input_tokens or 0
+            total_output_tokens += plan_result.usage.output_tokens or 0
 
         # Tope de llamadas al LLM: el bucle nunca llama a `chat` más de
         # `max_iterations` veces, evitando bucles infinitos.
         for _ in range(self._max_iterations):
-            
+
             messages_for_llm = self._build_sliding_window(messages)
 
             system_for_llm = self._system
+            if plan_block is not None:
+                system_for_llm = f"{system_for_llm}\n\n{plan_block}"
             if scratchpad is not None:
-                system_for_llm = f"{self._system}\n\n{scratchpad.render()}"
+                system_for_llm = f"{system_for_llm}\n\n{scratchpad.render()}"
 
             response = self._chat_with_retry(
                 messages=messages_for_llm,
