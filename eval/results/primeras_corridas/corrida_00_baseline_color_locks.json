@@ -1,0 +1,100 @@
+{
+  "metadata": {
+    "schema_version": 1,
+    "report_kind": "historical_reconstruction",
+    "source_file": "prints primeras corridas.md",
+    "source_section": "Corrida 1",
+    "evolution_record": "Baseline M3 - color-locks",
+    "reconstructed_at_utc": "2026-08-22T04:25:27.980743+00:00",
+    "notes": [
+      "Reconstruido desde un print de terminal pegado en Markdown.",
+      "Se preservan los resultados y trazas disponibles; no se inventan campos ausentes."
+    ]
+  },
+  "summary": {
+    "evaluated_scenarios": 1,
+    "achieved_scenarios": 0,
+    "accuracy": 0.0,
+    "tool_calls": 10,
+    "tool_outputs_starting_with_error": 3,
+    "input_tokens": 18861,
+    "output_tokens": 727,
+    "duration_seconds": null
+  },
+  "results": [
+    {
+      "scenario": "color-locks",
+      "difficulty": "medium",
+      "goal_achieved": false,
+      "goal_reason": "puerta principal cerrada",
+      "agent_result": {
+        "answer": "",
+        "steps": [
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"llave plateada\"}",
+            "tool_output": "Error: no existe un objeto con id 'llave plateada'.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Sótano...\nVes:\n  - llave plateada [id: llave_plata]\n  - cofre azul [id: cofre_azul]\n  - cofre plata [id: cofre_plata] (cerrado)\n  - cofre rojo [id: cofre_rojo] (cerrado)\n  - cofre verde [id: cofre_verde] (cerrado)\n  - puerta principal [id: puerta_principal] (cerrada)",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"llave_plata\"}",
+            "tool_output": "llave plateada: una llave de plata...",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_azul\"}",
+            "tool_output": "cofre azul: ... Contiene: un trapo viejo.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_plata\"}",
+            "tool_output": "cofre plata: está cerrado.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_plata\", \"target\": \"cofre_plata\"}",
+            "tool_output": "Error: no llevas llave plateada.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Sótano...",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_plata\", \"target\": \"cofre_plata\"}",
+            "tool_output": "Error: no llevas llave plateada.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Sótano...",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_rojo\"}",
+            "tool_output": "cofre rojo: está cerrado.",
+            "error": null
+          }
+        ],
+        "error": "Se alcanzó el máximo de iteraciones (10) sin que el modelo produjera una respuesta final.",
+        "input_tokens": 18861,
+        "output_tokens": 727
+      }
+    }
+  ]
+}

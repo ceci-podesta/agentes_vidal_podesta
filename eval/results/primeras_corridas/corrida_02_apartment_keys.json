@@ -1,0 +1,338 @@
+{
+  "metadata": {
+    "schema_version": 1,
+    "report_kind": "historical_reconstruction",
+    "source_file": "prints primeras corridas.md",
+    "source_section": "Corrida 3",
+    "evolution_record": "Corrida 2",
+    "reconstructed_at_utc": "2026-08-22T04:25:27.981811+00:00",
+    "notes": [
+      "Reconstruido desde un print de terminal pegado en Markdown.",
+      "Se preservan los resultados y trazas disponibles; no se inventan campos ausentes."
+    ]
+  },
+  "summary": {
+    "evaluated_scenarios": 3,
+    "achieved_scenarios": 2,
+    "accuracy": 0.6666666666666666,
+    "tool_calls": 42,
+    "tool_outputs_starting_with_error": 8,
+    "input_tokens": 104405,
+    "output_tokens": 2640,
+    "duration_seconds": 44.22344564400555
+  },
+  "results": [
+    {
+      "scenario": "study-with-key",
+      "difficulty": "easy",
+      "user_message": "Te despiertas encerrado en un pequeño estudio. La puerta está cerrada. Encuentra la forma de salir. Usa las herramientas que tienes disponibles para explorar la sala y resolver el puzzle.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 7.3140522290050285,
+      "agent_result": {
+        "answer": "<thinking>La puerta principal se ha abierto con éxito. He logrado salir del estudio.</thinking> ",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Estudio.\nUn estudio pequeño forrado de libros. Una alfombra persa cubre el centro del suelo. A un lado hay un escritorio de roble. Al fondo, la puerta principal.\nVes:\n  - alfombra [id: alfombra]\n  - escritorio [id: escritorio]\n  - puerta principal [id: puerta_principal] (cerrada)",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"alfombra\"}",
+            "tool_output": "alfombra: Una vieja alfombra persa. Algo abulta debajo.\nContiene:\n  - llave dorada [id: llave_oro]",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Error: no llevas ningún 'llave_oro'.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_oro\"}",
+            "tool_output": "Tomas llave dorada.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave dorada con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 9386,
+        "output_tokens": 316
+      }
+    },
+    {
+      "scenario": "color-locks",
+      "difficulty": "medium",
+      "user_message": "Te despiertas en un sótano frío. La puerta principal, al fondo, está cerrada con una cerradura dorada considerable. Sobre una repisa baja brilla una llave plateada. Repartidos por el suelo hay cuatro cofres pintados de colores distintos (plateado, rojo, verde y azul), cada uno con su cerradura del mismo color. Algunos cofres están cerrados con llave, otros no. Encuentra la forma de salir.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": false,
+      "goal_reason": "puerta principal está cerrada",
+      "duration_seconds": 21.060545205007656,
+      "agent_result": {
+        "answer": "",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Sótano.\nUn sótano de piedra con olor a humedad y una bombilla solitaria colgando del techo. Una repisa baja en la pared norte sostiene una llave plateada brillante. En el suelo descansan cuatro cofres pintados de colores distintos. Al fondo, una puerta de roble con cerradura dorada.\nVes:\n  - llave plateada [id: llave_plata]\n  - cofre plateado [id: cofre_plata] (cerrada)\n  - cofre rojo [id: cofre_rojo] (cerrada)\n  - cofre verde [id: cofre_verde] (cerrada)\n  - cofre azul [id: cofre_azul]\n  - puerta principal [id: puerta_principal] (cerrada)",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_azul\"}",
+            "tool_output": "cofre azul: Un cofre pintado de azul desconchado. Sorprendentemente, no tiene cerradura: las bisagras se abren al primer empujón.\nContiene:\n  - trapo viejo [id: trapo_viejo]",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_plata\"}",
+            "tool_output": "cofre plateado: Un cofre pequeño con tachuelas plateadas y una cerradura del mismo color. Encaja con una llave del mismo color.\nEstá cerrado con llave. No puedes ver el interior hasta abrirlo.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_rojo\"}",
+            "tool_output": "cofre rojo: Un cofre mediano pintado de rojo, con una cerradura roja del mismo tono. Encaja con una llave del mismo color.\nEstá cerrado con llave. No puedes ver el interior hasta abrirlo.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_verde\"}",
+            "tool_output": "cofre verde: Un cofre grande pintado de verde, con una cerradura verde voluminosa. Encaja con una llave del mismo color.\nEstá cerrado con llave. No puedes ver el interior hasta abrirlo.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_plata\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Error: no llevas ningún 'llave_plata'.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_plata\"}",
+            "tool_output": "Tomas llave plateada.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_plata\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Intentas usar llave plateada con puerta principal, pero no encaja.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_plata\"}",
+            "tool_output": "cofre plateado: Un cofre pequeño con tachuelas plateadas y una cerradura del mismo color. Encaja con una llave del mismo color.\nEstá cerrado con llave. No puedes ver el interior hasta abrirlo.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_rojo\"}",
+            "tool_output": "cofre rojo: Un cofre mediano pintado de rojo, con una cerradura roja del mismo tono. Encaja con una llave del mismo color.\nEstá cerrado con llave. No puedes ver el interior hasta abrirlo.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_verde\"}",
+            "tool_output": "cofre verde: Un cofre grande pintado de verde, con una cerradura verde voluminosa. Encaja con una llave del mismo color.\nEstá cerrado con llave. No puedes ver el interior hasta abrirlo.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"trapo_viejo\"}",
+            "tool_output": "trapo viejo: Un trapo gris y manchado de aceite. Inservible.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_plata\", \"target\": \"cofre_plata\"}",
+            "tool_output": "Usas llave plateada con cofre plateado. Se abre.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_plata\"}",
+            "tool_output": "cofre plateado: Un cofre pequeño con tachuelas plateadas y una cerradura del mismo color. Encaja con una llave del mismo color.\nContiene:\n  - llave roja [id: llave_roja]",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_roja\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Error: no llevas ningún 'llave_roja'.",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_roja\"}",
+            "tool_output": "Tomas llave roja.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_roja\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Intentas usar llave roja con puerta principal, pero no encaja.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_rojo\"}",
+            "tool_output": "cofre rojo: Un cofre mediano pintado de rojo, con una cerradura roja del mismo tono. Encaja con una llave del mismo color.\nEstá cerrado con llave. No puedes ver el interior hasta abrirlo.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cofre_verde\"}",
+            "tool_output": "cofre verde: Un cofre grande pintado de verde, con una cerradura verde voluminosa. Encaja con una llave del mismo color.\nEstá cerrado con llave. No puedes ver el interior hasta abrirlo.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_plata\", \"target\": \"cofre_rojo\"}",
+            "tool_output": "Intentas usar llave plateada con cofre rojo, pero no encaja.",
+            "error": null
+          }
+        ],
+        "error": "Se alcanzó el máximo de iteraciones (20) sin que el modelo produjera una respuesta final.",
+        "input_tokens": 54060,
+        "output_tokens": 1391
+      }
+    },
+    {
+      "scenario": "apartment-keys",
+      "difficulty": "medium",
+      "user_message": "Te despiertas en el recibidor de un apartamento desconocido. La puerta principal está cerrada con llave y no la ves por ningún lado. Hay un pasillo que se interna en el apartamento. Explora los ambientes, encuentra la llave y vuelve a abrir la puerta principal.",
+      "goal": {
+        "type": "item_open",
+        "item": "puerta_principal"
+      },
+      "goal_achieved": true,
+      "goal_reason": "puerta principal está abierta",
+      "duration_seconds": 15.848848209992866,
+      "agent_result": {
+        "answer": "<thinking>La llave dorada funcionó y la puerta principal se abrió. He cumplido el objetivo de encontrar la llave y salir del apartamento.</thinking>\n\n<response>He encontrado la llave en el cajón de la cocina y he abierto la puerta principal. He cumplido el objetivo.</response>",
+        "steps": [
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Recibidor.\nUn recibidor estrecho con un perchero vacío y un espejo polvoriento. La puerta principal, de metal, está cerrada con una cerradura simple. Un pasillo se abre hacia el norte.\nVes:\n  - puerta principal [id: puerta_principal] (cerrada)\nSalidas: norte.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"norte\"}",
+            "tool_output": "Caminas hacia norte. Llegas a Pasillo.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Pasillo.\nUn pasillo en penumbra con cuadros torcidos. Conecta el recibidor al sur con la cocina al este.\nNo ves nada de interés.\nSalidas: este, sur.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Cocina.",
+            "error": null
+          },
+          {
+            "tool_name": "look",
+            "tool_input": "{}",
+            "tool_output": "Estás en Cocina.\nUna cocina pequeña con azulejos blancos. Hay una mesada con un cajón cerrado y olor a café frío.\nVes:\n  - cajón de la cocina [id: cajon]\nSalidas: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "examine",
+            "tool_input": "{\"target\": \"cajon\"}",
+            "tool_output": "cajón de la cocina: Un cajón de madera bajo la mesada. Se abre con un tirón y dentro hay cubiertos sueltos y algo más.\nContiene:\n  - llave dorada [id: llave_oro]",
+            "error": null
+          },
+          {
+            "tool_name": "take",
+            "tool_input": "{\"item\": \"llave_oro\"}",
+            "tool_output": "Tomas llave dorada.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"sur\"}",
+            "tool_output": "Error: no hay salida 'sur' desde aquí. Salidas disponibles: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Caminas hacia oeste. Llegas a Pasillo.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Error: no hay salida 'oeste' desde aquí. Salidas disponibles: este, sur.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"este\"}",
+            "tool_output": "Caminas hacia este. Llegas a Cocina.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Error: no ves ningún 'puerta_principal' aquí.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"sur\"}",
+            "tool_output": "Error: no hay salida 'sur' desde aquí. Salidas disponibles: oeste.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Caminas hacia oeste. Llegas a Pasillo.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"oeste\"}",
+            "tool_output": "Error: no hay salida 'oeste' desde aquí. Salidas disponibles: este, sur.",
+            "error": null
+          },
+          {
+            "tool_name": "go",
+            "tool_input": "{\"direction\": \"sur\"}",
+            "tool_output": "Caminas hacia sur. Llegas a Recibidor.",
+            "error": null
+          },
+          {
+            "tool_name": "use",
+            "tool_input": "{\"item\": \"llave_oro\", \"target\": \"puerta_principal\"}",
+            "tool_output": "Usas llave dorada con puerta principal. Se abre.",
+            "error": null
+          }
+        ],
+        "error": null,
+        "input_tokens": 40959,
+        "output_tokens": 933
+      }
+    }
+  ]
+}

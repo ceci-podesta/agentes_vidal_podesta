@@ -39,6 +39,20 @@ def build_agent(config: dict[str, Any] | None = None) -> Agent:
     if "max_history_messages" in config:
         kwargs["max_history_messages"] = config["max_history_messages"]
 
+    for option in ("system_prompt", "max_iterations"):
+        if option in config:
+            kwargs[option] = config[option]
+
+    for option in (
+        "max_repeated_failures",
+        "max_repeated_observations",
+        "observation_tool_names",
+        "use_m3_scratchpad",
+        "use_m3_planner",
+    ):
+        if option in config:
+            kwargs[option] = config[option]
+
     agent = MyAgent(**kwargs)
 
     agent.register_tool(calculator, calculator_schema)

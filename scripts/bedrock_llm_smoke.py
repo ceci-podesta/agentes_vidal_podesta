@@ -72,7 +72,10 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     _add_scaffold_to_path()
 
+    from mia_agents._env import load_env_files
     from mia_agents.llm_client import BedrockProvider, LLMClient
+
+    load_env_files()
 
     args = _build_parser().parse_args(argv)
     missing = _missing_required_env()

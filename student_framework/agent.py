@@ -12,6 +12,7 @@ Los tests de conformidad en `tests/conformance/test_m1.py` y
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from typing import Any, Callable
 from pydantic import ValidationError
 
@@ -20,9 +21,49 @@ from mia_agents.protocols import LLMClient
 from mia_agents.types import AgentResult, AgentStep, LLMResponse, ToolCall, ToolSchema
 from mia_agents.tool_schema import FINAL_RESULT_TOOL_NAME, final_result_tool_schema
 
+from .m3_planner import PLANNING_PROMPT_TEMPLATE, Plan, render_plan
+from .m3_scratchpad import M3Scratchpad
+
 
 _MAX_LLM_RETRIES = 3
-_TRANSIENT_KEYWORDS = ("timeout", "timed out", "rate limit", "throttl", "503", "502", "504")
+_TRANSIENT_KEYWORDS = (
+    "timeout",
+    "timed out",
+    "rate limit",
+    "throttl",
+    "503",
+    "502",
+    "504",
+    # Bedrock a veces genera un tool-call malformado por muestreo del modelo
+    # (no es un bug de nuestro payload): reintentar suele alcanzar.
+    "modelerrorexception",
+    "invalid sequence as part of tooluse",
+)
+
+
+@dataclass
+class StructuredCallUsage:
+    """Uso de LLM consumido por una llamada estructurada."""
+
+    input_tokens: int | None
+    output_tokens: int | None
+    attempts: int
+
+
+@dataclass
+class StructuredCallResult:
+    """Valor Pydantic validado y métricas de su obtención."""
+
+    value: Any
+    usage: StructuredCallUsage
+
+
+class StructuredCallError(ValueError):
+    """Error de salida estructurada que conserva el consumo realizado."""
+
+    def __init__(self, message: str, usage: StructuredCallUsage) -> None:
+        super().__init__(message)
+        self.usage = usage
 
 
 def _is_transient_error(exc: Exception) -> bool:
@@ -46,6 +87,11 @@ class MyAgent:
         system_prompt: str = "Eres un asistente útil.",
         max_iterations: int = 10,
         max_history_messages: int = 50,
+        max_repeated_failures: int | None = None,
+        max_repeated_observations: int | None = None,
+        observation_tool_names: set[str] | None = None,
+        use_m3_scratchpad: bool = False,
+        use_m3_planner: bool = False,
     ) -> None:
         """Inicializa el agente.
 
@@ -66,10 +112,26 @@ class MyAgent:
             superar este número en ninguna llamada, sin importar la
             estrategia de memoria que elijan.
         """
+        for option_name, option_value in (
+            ("max_repeated_failures", max_repeated_failures),
+            ("max_repeated_observations", max_repeated_observations),
+        ):
+            if option_value is not None and option_value < 1:
+                raise ValueError(f"{option_name} debe ser mayor que cero.")
+
         self._llm = llm_client
         self._system = system_prompt
         self._max_iterations = max_iterations
         self._max_history_messages = max_history_messages
+        self._max_repeated_failures = max_repeated_failures
+        self._max_repeated_observations = max_repeated_observations
+        self._observation_tool_names = set(observation_tool_names or set())
+        self._use_m3_scratchpad = use_m3_scratchpad
+        self._use_m3_planner = use_m3_planner
+        # No forma parte de AgentResult (fijo, mia_agents/types.py): expone
+        # el ultimo plan generado para poder inspeccionarlo desde afuera
+        # (ver eval/manual_run.py), sin tocar el contrato de M1/M2.
+        self.last_plan_block: str | None = None
         self._tools: dict[str, Callable[..., str]] = {}
         self._schemas: dict[str, ToolSchema] = {}
         self._history: list[dict[str, Any]] = []#M2: Este atributo pertenece a la instancia y sobrevive entre llamadas sucesivas a run()
@@ -163,6 +225,33 @@ class MyAgent:
 
 
 
+    @staticmethod
+    def _tool_call_signature(tool_call: ToolCall) -> tuple[str, str]:
+        """Devuelve una firma estable para comparar llamadas equivalentes."""
+        raw_arguments = tool_call.arguments or ""
+        try:
+            parsed_arguments = json.loads(raw_arguments) if raw_arguments else {}
+        except json.JSONDecodeError:
+            return tool_call.name, raw_arguments
+
+        if not isinstance(parsed_arguments, dict):
+            return tool_call.name, raw_arguments
+
+        normalized_arguments = json.dumps(
+            parsed_arguments,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        return tool_call.name, normalized_arguments
+
+    @staticmethod
+    def _is_failed_tool_step(step: AgentStep) -> bool:
+        """Reconoce errores de ejecución y el formato textual de M3."""
+        return step.error is not None or (
+            step.tool_output or ""
+        ).startswith("Error:")
+
     def run(self, user_message: str) -> AgentResult:
         """Ejecuta el bucle del agente hasta una respuesta final o hasta max_iterations.
 
@@ -198,23 +287,51 @@ class MyAgent:
 
         # Como en M1, steps y los contadores siguen perteneciendo solamente al run actual.
         steps: list[AgentStep] = []
+        failed_call_counts: dict[tuple[str, str], int] = {}
+        observation_counts: dict[tuple[str, str], int] = {}
+        scratchpad = M3Scratchpad() if self._use_m3_scratchpad else None
 
 
         total_input_tokens = 0
         total_output_tokens = 0
         has_token_usage = False
 
+        # M3: plan inicial opcional, generado con una unica llamada forzada
+        # (final_result, mecanismo de M2) antes de que el agente observe el
+        # mundo. Ver student_framework/m3_planner.py para la motivacion.
+        plan_block: str | None = None
+        self.last_plan_block = None
+        if self._use_m3_planner:
+            plan_result = self.structured_call_with_usage(
+                prompt=PLANNING_PROMPT_TEMPLATE.format(user_message=user_message),
+                schema=Plan,
+            )
+            plan_block = render_plan(plan_result.value)
+            self.last_plan_block = plan_block
+            if (
+                plan_result.usage.input_tokens is not None
+                or plan_result.usage.output_tokens is not None
+            ):
+                has_token_usage = True
+            total_input_tokens += plan_result.usage.input_tokens or 0
+            total_output_tokens += plan_result.usage.output_tokens or 0
 
         # Tope de llamadas al LLM: el bucle nunca llama a `chat` más de
         # `max_iterations` veces, evitando bucles infinitos.
         for _ in range(self._max_iterations):
-            
+
             messages_for_llm = self._build_sliding_window(messages)
+
+            system_for_llm = self._system
+            if plan_block is not None:
+                system_for_llm = f"{system_for_llm}\n\n{plan_block}"
+            if scratchpad is not None:
+                system_for_llm = f"{system_for_llm}\n\n{scratchpad.render()}"
 
             response = self._chat_with_retry(
                 messages=messages_for_llm,
                 tools=list(self._schemas.values()) if self._schemas else None,
-                system=self._system,
+                system=system_for_llm,
             )
 
             #Acumular tokens reportados por el proveedor.
@@ -290,8 +407,60 @@ class MyAgent:
             # Ejecutar cada herramienta y volcar su resultado al historial,
             # de modo que aparezca en la siguiente llamada a `chat`.
             for tool_call in response.tool_calls:
-                step, tool_output = self._execute_tool_call(tool_call)
+                signature = self._tool_call_signature(tool_call)
+                is_observation = (
+                    tool_call.name in self._observation_tool_names
+                )
+
+                failure_count = failed_call_counts.get(signature, 0)
+                observation_count = observation_counts.get(signature, 0)
+
+                if (
+                    self._max_repeated_failures is not None
+                    and failure_count >= self._max_repeated_failures
+                ):
+                    error = (
+                        "La llamada ya falló sin que hubiera progreso. "
+                        "Elegí una acción diferente."
+                    )
+                    tool_output = f"Error: {error}"
+                    step = AgentStep(
+                        tool_call.name,
+                        tool_call.arguments,
+                        tool_output,
+                        error=error,
+                    )
+                elif (
+                    is_observation
+                    and self._max_repeated_observations is not None
+                    and observation_count >= self._max_repeated_observations
+                ):
+                    error = (
+                        "La observación ya fue realizada sin que hubiera "
+                        "progreso. Elegí una acción diferente."
+                    )
+                    tool_output = f"Error: {error}"
+                    step = AgentStep(
+                        tool_call.name,
+                        tool_call.arguments,
+                        tool_output,
+                        error=error,
+                    )
+                else:
+                    step, tool_output = self._execute_tool_call(tool_call)
+
+                    if self._is_failed_tool_step(step):
+                        failed_call_counts[signature] = failure_count + 1
+                    elif is_observation:
+                        observation_counts[signature] = observation_count + 1
+                    else:
+                        failed_call_counts.clear()
+                        observation_counts.clear()
+
                 steps.append(step)
+                if scratchpad is not None:
+                    scratchpad.record(step)
+
                 messages.append(
                     {
                         "role": "tool",
@@ -388,6 +557,19 @@ class MyAgent:
         schema: Any,
         max_repair_attempts: int = 2,
     ) -> Any:
+        """Mantiene el contrato M2: devuelve solamente el valor validado."""
+        return self.structured_call_with_usage(
+            prompt=prompt,
+            schema=schema,
+            max_repair_attempts=max_repair_attempts,
+        ).value
+
+    def structured_call_with_usage(
+        self,
+        prompt: str,
+        schema: Any,
+        max_repair_attempts: int = 2,
+    ) -> StructuredCallResult:
         """Pide al LLM una respuesta validada contra `schema` (M2).
 
         Obligatorio: herramienta sintética `final_result` (ver
@@ -423,6 +605,11 @@ class MyAgent:
         #(se inicializa en None)
         last_error: str | None = None
 
+        # M3: este metodo tiene su propio loop de llamadas al LLM. Igual que
+        # run(), conserva None si el proveedor no informa uso en ningun intento.
+        total_input_tokens = 0
+        total_output_tokens = 0
+        has_token_usage = False
 
         # Intento inicial + cantidad maxima de reparaciones permitidas.
         for attempt in range(max_repair_attempts + 1):
@@ -433,6 +620,14 @@ class MyAgent:
                 system=self._system,
             )
 
+            if (
+                response.input_tokens is not None
+                or response.output_tokens is not None
+            ):
+                has_token_usage = True
+
+            total_input_tokens += response.input_tokens or 0
+            total_output_tokens += response.output_tokens or 0
 
             # Buscar el tool_call obligatorio que cierra la respuesta.
             final_call = next(
@@ -464,9 +659,24 @@ class MyAgent:
                         )
 
 
-                    # Si valida, structured_call termina devolviendo la
-                    # instancia concreta del modelo Pydantic recibido.
-                    return schema.model_validate(arguments)
+                    # Si valida, devolvemos la instancia Pydantic y las
+                    # metricas acumuladas en los intentos de esta llamada.
+                    return StructuredCallResult(
+                        value=schema.model_validate(arguments),
+                        usage=StructuredCallUsage(
+                            input_tokens=(
+                                total_input_tokens
+                                if has_token_usage
+                                else None
+                            ),
+                            output_tokens=(
+                                total_output_tokens
+                                if has_token_usage
+                                else None
+                            ),
+                            attempts=attempt + 1,
+                        ),
+                    )
                 except (
                     json.JSONDecodeError,
                     ValidationError,
@@ -515,8 +725,17 @@ class MyAgent:
 
 
         # Respuesta cuando se agotan intentos (asegura que no se devuelve None ni un objeto parcial).
-        raise ValueError(
+        raise StructuredCallError(
             "No se pudo obtener una respuesta estructurada válida "
             f"después de {max_repair_attempts + 1} intentos. "
-            f"Último error: {last_error}"
+            f"Último error: {last_error}",
+            usage=StructuredCallUsage(
+                input_tokens=(
+                    total_input_tokens if has_token_usage else None
+                ),
+                output_tokens=(
+                    total_output_tokens if has_token_usage else None
+                ),
+                attempts=max_repair_attempts + 1,
+            ),
         )
