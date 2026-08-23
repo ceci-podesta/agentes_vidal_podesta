@@ -107,6 +107,14 @@ Si un ítem figura como contenido descubierto pero no está en Inventario, usá
 take antes de use. Sólo usá un ítem sobre un destino visible en la ubicación
 actual.
 
+Si al abrir o examinar un contenedor (caja fuerte, cofre, cajón) aparece más
+de un objeto relevante para tu objetivo, tomá todos esos objetos antes de
+salir de esa sala. No asumas que vas a poder volver a buscarlo después.
+
+Cuando un use abra un contenedor que antes estaba cerrado, look no alcanza
+para ver qué contiene: volvé a examinar ese contenedor para revelar su
+contenido antes de intentar tomar algo de él.
+
 Usá la observación más reciente de las tools como fuente de verdad sobre el
 estado actual del mundo.
 
@@ -132,6 +140,12 @@ sala en este mismo recorrido y recuerdes sus salidas con certeza.
 Después de cada resultado de una tool, actualizá tu plan. Si una acción falla,
 corregí la causa y no repitas exactamente la misma acción sin información nueva.
 Evitá volver a inspeccionar objetos cuyo estado no cambió.
+
+Si una tool responde "ya falló sin que hubiera progreso" o "ya fue realizada
+sin que hubiera progreso", eso significa que ya insististe con esa misma
+llamada antes: no la repitas bajo ninguna circunstancia. Elegí una acción
+distinta usando los datos del último error real (por ejemplo, si un go
+falló, usá una de las salidas que ese error listó como disponibles).
 
 Cuando examine revele una coleccion de mas de cinco documentos similares,
 llama UNA sola vez a research_documents con TODOS los IDs exactos de esa

@@ -64,6 +64,13 @@ class M3Scratchpad:
             lines.append("- Salidas conocidas: " + ", ".join(self.exits))
         if self.inventory:
             lines.append("- Inventario: " + ", ".join(self.inventory))
+        pending_items = self._pending_items()
+        if pending_items:
+            lines.append(
+                "- Objetos que ya abriste y viste pero TODAVÍA no tomaste: "
+                + ", ".join(pending_items)
+                + ". Si tu objetivo los necesita, tomalos antes de salir de esta sala."
+            )
         if self.visible_ids:
             lines.append("- IDs visibles: " + ", ".join(self.visible_ids))
         if self.contents:
@@ -91,6 +98,20 @@ class M3Scratchpad:
             lines.append("- Sin hechos todavía. Observá el entorno antes de actuar.")
 
         return "\n".join(lines)
+
+    def _pending_items(self) -> list[str]:
+        """IDs revelados dentro de contenedores que abriste (use) y ya no
+        están en tu inventario. Acotado a `self.opened` para no incluir
+        estanterías/colecciones grandes de solo lectura (biblioteca, archivo),
+        donde no se espera tomar todo lo examinado."""
+        pending: list[str] = []
+        for target, item_ids in self.contents.items():
+            if target not in self.opened:
+                continue
+            for item_id in item_ids:
+                if item_id not in self.inventory and item_id not in pending:
+                    pending.append(item_id)
+        return pending
 
     def _record_look(self, output: str) -> None:
         location = _LOCATION_PATTERN.search(output)

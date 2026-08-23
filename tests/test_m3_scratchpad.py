@@ -59,6 +59,63 @@ def test_scratchpad_extracts_world_facts() -> None:
     assert "no hay salida 'sur'" in rendered
 
 
+def test_scratchpad_warns_about_items_left_in_an_opened_container() -> None:
+    """Si un use abre un contenedor con 2+ items, avisa el que falta tomar."""
+    scratchpad = M3Scratchpad()
+
+    scratchpad.record(
+        AgentStep(
+            "use",
+            json.dumps({"item": "llave_caja", "target": "caja_fuerte"}),
+            "Usas llave de la caja fuerte con caja fuerte. Se abre.",
+        )
+    )
+    scratchpad.record(
+        AgentStep(
+            "examine",
+            json.dumps({"target": "caja_fuerte"}),
+            "caja fuerte: Contiene:\n"
+            "  - documento confidencial [id: documento_confidencial]\n"
+            "  - llave maestra [id: llave_maestra]",
+        )
+    )
+    scratchpad.record(
+        AgentStep(
+            "take",
+            json.dumps({"item": "llave_maestra"}),
+            "Tomas llave maestra.",
+        )
+    )
+
+    rendered = scratchpad.render()
+    pending_line = next(
+        line for line in rendered.splitlines() if "TODAVÍA no tomaste" in line
+    )
+
+    assert "documento_confidencial" in pending_line
+    assert "llave_maestra" not in pending_line
+
+
+def test_scratchpad_does_not_warn_about_unopened_shelves() -> None:
+    """Estanterías examinadas sin `use` no generan aviso de objetos pendientes
+    (biblioteca/archivo: no se espera tomar todo lo que se examina)."""
+    scratchpad = M3Scratchpad()
+
+    scratchpad.record(
+        AgentStep(
+            "examine",
+            json.dumps({"target": "estanteria_alta"}),
+            "estantería alta: Contiene:\n"
+            "  - libro uno [id: libro_uno]\n"
+            "  - libro dos [id: libro_dos]",
+        )
+    )
+
+    rendered = scratchpad.render()
+
+    assert "TODAVÍA no tomaste" not in rendered
+
+
 def test_agent_sends_scratchpad_in_following_chat_calls() -> None:
     """Cada llamada posterior al LLM recibe los hechos ya observados."""
     def look() -> str:
