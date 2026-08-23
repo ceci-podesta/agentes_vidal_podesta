@@ -470,10 +470,6 @@ def save_report(report: dict[str, Any], output_dir: Path) -> Path:
 
 def main() -> int:
     """Ejecuta cada escenario REPEATS_PER_SCENARIO veces (pass@k) y guarda evidencia."""
-    available = discover_scenarios(SCENARIOS_DIR)
-    selected = select_scenarios(available)
-    selected_scenario_ids = [scenario.id for scenario in selected]
-
     # Timestamp fijo para todo el run: cada checkpoint pisa el mismo
     # archivo con mas datos, en vez de crear uno nuevo por intento.
     timestamp = datetime.now(timezone.utc)
@@ -481,7 +477,18 @@ def main() -> int:
 
     results: list[dict[str, Any]] = []
     report: dict[str, Any] = {}
+    selected_scenario_ids: list[str] = []
     for attempt in range(1, REPEATS_PER_SCENARIO + 1):
+        # `Scenario.initial_world` es un `World` concreto y mutable, no una
+        # fabrica: reusar los mismos objetos entre intentos dejaria el mundo
+        # con la puerta ya abierta o items ya tomados del intento anterior, e
+        # invalidaria pass@k. `load_scenario`/`list_scenarios` si construyen
+        # un `World` nuevo desde el JSON en cada llamada, asi que se
+        # redescubren los escenarios en cada intento para partir de cero.
+        available = discover_scenarios(SCENARIOS_DIR)
+        selected = select_scenarios(available)
+        selected_scenario_ids = [scenario.id for scenario in selected]
+
         for scenario in selected:
             result = run_scenario(scenario)
             result["attempt"] = attempt
