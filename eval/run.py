@@ -86,7 +86,7 @@ M3_AGENT_CONFIG = {
     "max_repeated_failures": 1,
     "max_repeated_observations": 1,
     "observation_tool_names": {"look", "examine", "research_documents"},
-    "use_m3_scratchpad": True,
+    "use_m3_scratchpad": False,
     # Activado tras el experimento planner vs ReAct puro (ver INFORME_M3.md):
     # 3/3 en color-locks y 2/3 en office-sequence con planner, contra 2/5 y
     # 2/5 sin el en el pass@k oficial. Para volver a ReAct puro sin planner,
