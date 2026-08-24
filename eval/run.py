@@ -27,6 +27,11 @@ from student_framework.m3_research import (
     ResearchDiagnostics,
     make_research_documents_tool,
 )
+from eval.llm_judge import (
+    DEFAULT_JUDGE_MODEL_ID,
+    DEFAULT_JUDGE_REGION,
+    evaluate_report,
+)
 
 
 SCENARIOS_DIR = PROJECT_ROOT / "scenarios"
@@ -45,19 +50,25 @@ DIFFICULTY_ORDER = {
 # backtracking-vault) no son obligatorios y hoy no se resuelven; quedan
 # fuera para no gastar tiempo/costo de Bedrock en la corrida que se cita
 # en el informe. Usar None para evaluar el dataset completo (los 8).
-DEVELOPMENT_SCENARIOS: list[str] | None = [
-    "study-with-key",
-    "color-locks",
-    "apartment-keys",
-    "library-search",
-    "office-sequence",
-    "extreme-archive",
-]
+DEVELOPMENT_SCENARIOS: list[str] | None = None
+# [
+#     "study-with-key",
+#     "color-locks",
+#     "apartment-keys",
+#     "library-search",
+#     "office-sequence",
+#     "extreme-archive",
+# ]
 
 # "final" marca una corrida como evidencia oficial para el informe;
 # "development" marca corridas exploratorias/de diagnostico. Es
 # independiente del subconjunto de escenarios elegido arriba.
 RUN_KIND = "final"
+
+# La evaluacion cualitativa forma parte del mismo entrypoint reproducible.
+RUN_LLM_JUDGE = True
+JUDGE_MODEL_ID = DEFAULT_JUDGE_MODEL_ID
+JUDGE_REGION = DEFAULT_JUDGE_REGION
 
 # Repeticiones por escenario para pass@k (ENUNCIADO_M3.md lo sugiere
 # explicitamente como metrica valida). Una sola corrida no alcanza para
@@ -508,6 +519,19 @@ def save_report(report: dict[str, Any], output_dir: Path) -> Path:
     )
     return report_path
 
+def run_qualitative_evaluation(
+    report: dict[str, Any],
+    report_path: Path,
+) -> tuple[dict[str, Any], Path]:
+    """Evalua las trazas ya generadas sin volver a correr los escenarios."""
+    return evaluate_report(
+        report,
+        report_path=report_path,
+        model_id=JUDGE_MODEL_ID,
+        region=JUDGE_REGION,
+    )
+
+
 def main() -> int:
     """Ejecuta cada escenario REPEATS_PER_SCENARIO veces (pass@k) y guarda evidencia."""
     # Timestamp fijo para todo el run: cada checkpoint pisa el mismo
@@ -550,6 +574,46 @@ def main() -> int:
 
     print(json.dumps(report, ensure_ascii=False, indent=2))
     print(f"Reporte final guardado en: {report_path}", file=sys.stderr)
+
+    judge_report: dict[str, Any] | None = None
+    if RUN_LLM_JUDGE:
+        print(
+            "Ejecutando evaluacion cualitativa con LLM-as-judge...",
+            file=sys.stderr,
+        )
+        try:
+            judge_report, judge_report_path = run_qualitative_evaluation(
+                report,
+                report_path,
+            )
+        except Exception as exc:
+            print(
+                "Advertencia: no se pudo completar la evaluacion "
+                f"cualitativa ({type(exc).__name__}: {exc}).\n"
+                "Puede reintentarse sin repetir escenarios con:\n"
+                f"python eval/llm_judge.py {report_path}",
+                file=sys.stderr,
+            )
+        else:
+            print(
+                json.dumps(
+                    judge_report["summary"],
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+            print(
+                f"Reporte cualitativo guardado en: {judge_report_path}",
+                file=sys.stderr,
+            )
+            if judge_report["summary"]["execution_status"] != "completed":
+                print(
+                    "Advertencia: la evaluacion cualitativa quedo "
+                    "incompleta. Puede reintentarse sin repetir "
+                    "escenarios con:\n"
+                    f"python eval/llm_judge.py {report_path}",
+                    file=sys.stderr,
+                )
 
     all_resolved = all(
         entry["resolved"] for entry in report["pass_at_k"].values()

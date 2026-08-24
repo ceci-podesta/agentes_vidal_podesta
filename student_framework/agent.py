@@ -711,6 +711,20 @@ class MyAgent:
             )
 
 
+            # Bedrock exige un toolResult por cada toolUse antes del siguiente
+            # mensaje. final_result no se ejecuta cuando sus argumentos son
+            # invalidos: devolvemos el error para que el modelo los repare.
+            for tool_call in response.tool_calls:
+                messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "content": f"Error de validacion: {last_error}",
+                    }
+                )
+
+
+
             # Instruccion temporal para que el LLM corrija el formato.
             messages.append(
                 {
