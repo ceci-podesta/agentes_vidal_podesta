@@ -1,0 +1,117 @@
+{
+  "metadata": {
+    "judge_run_id": "20260824T003843076617Z",
+    "timestamp_utc": "2026-08-24T00:38:43.076617+00:00",
+    "source_run_id": "20260823T201948569061Z",
+    "judge_provider": {
+      "provider": "bedrock",
+      "model_provider": "moonshot",
+      "model": "moonshot.kimi-k2-thinking",
+      "region": "us-east-1"
+    },
+    "evaluation_dimension": "uso_del_feedback",
+    "deterministic_outcome_included_in_prompt": false,
+    "source_outcome_attached_after_judgment": true,
+    "rubric_scale": "0-2-null"
+  },
+  "summary": {
+    "requested_traces": 1,
+    "judged_traces": 1,
+    "failed_judgments": 0,
+    "feedback_use": {
+      "average_score": 1.0,
+      "score_distribution": {
+        "0": 0,
+        "1": 1,
+        "2": 0
+      },
+      "evaluated_traces": 1,
+      "not_applicable": 0,
+      "feedback_episodes": 6,
+      "incorporated_episodes": 4,
+      "incorporation_rate": 0.6666666666666666
+    },
+    "average_confidence": 1.0,
+    "insufficient_evidence": 0,
+    "judge_input_tokens": 3200,
+    "judge_output_tokens": 2916
+  },
+  "judgments": [
+    {
+      "scenario": "office-sequence",
+      "difficulty": "hard",
+      "attempt": 2,
+      "source_outcome": {
+        "goal_achieved": false,
+        "goal_reason": "faltan condiciones: puerta principal está cerrada"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 1
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 1,
+        "justification": "La traza contiene múltiples instancias de feedback correctivo donde las herramientas informan errores o restricciones. El agente incorpora el feedback en algunos casos (como corregir direcciones de movimiento o cambiar de acción cuando una falla repetida), pero falla en otros (como cuando se le informa que no tiene la llave maestra y en lugar de ir a buscarla intenta examinar una caja fuerte que no está presente). De 6 episodios identificados, 4 fueron incorporados y 2 no, resultando en un desempeño parcial.",
+        "episodes": [
+          {
+            "feedback_step": 8,
+            "feedback_evidence": "Error: no hay salida 'norte' desde aquí. Salidas disponibles: oeste.",
+            "next_relevant_step": 9,
+            "next_action_evidence": "Caminas hacia oeste. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente recibe feedback de que no puede ir al norte y debe usar oeste. Inmediatamente usa la salida correcta 'oeste' en el paso siguiente."
+          },
+          {
+            "feedback_step": 14,
+            "feedback_evidence": "Error: 'llave_maestra' no es visible o accesible desde aquí.",
+            "next_relevant_step": 15,
+            "next_action_evidence": "caja fuerte: Una caja fuerte empotrada con una cerradura de llave plana. Cerrada.\nContiene:\n  - documento confidencial [id: documento_confidencial]\n  - llave maestra [id: llave_maestra]",
+            "incorporated": true,
+            "explanation": "Ante la imposibilidad de tomar la llave maestra, el agente examina la caja fuerte para entender por qué no es accesible, descubriendo que está dentro de ella."
+          },
+          {
+            "feedback_step": 16,
+            "feedback_evidence": "La llamada ya falló sin que hubiera progreso. Elegí una acción diferente.",
+            "next_relevant_step": 17,
+            "next_action_evidence": "Tomas documento confidencial.",
+            "incorporated": true,
+            "explanation": "El agente recibe feedback directo de que debe elegir una acción diferente tras un fallo repetido, y cambia su estrategia tomando el documento en lugar de insistir con la llave maestra."
+          },
+          {
+            "feedback_step": 18,
+            "feedback_evidence": "Error: no hay salida 'oeste' desde aquí. Salidas disponibles: sur.",
+            "next_relevant_step": 19,
+            "next_action_evidence": "Caminas hacia sur. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente recibe feedback de que no puede ir al oeste y debe usar sur. Inmediatamente usa la salida correcta 'sur' en el paso siguiente."
+          },
+          {
+            "feedback_step": 20,
+            "feedback_evidence": "Error: no llevas ningún 'llave_maestra'.",
+            "next_relevant_step": 21,
+            "next_action_evidence": "Error: no ves ningún 'caja_fuerte' aquí.",
+            "incorporated": false,
+            "explanation": "El agente es informado que no tiene la llave maestra. En lugar de ir a buscarla al archivo, intenta examinar una caja fuerte que no está presente en su ubicación actual (corredor), lo que no resuelve el problema identificado."
+          },
+          {
+            "feedback_step": 25,
+            "feedback_evidence": "Error: no hay salida 'oeste' desde aquí. Salidas disponibles: sur.",
+            "next_relevant_step": null,
+            "next_action_evidence": null,
+            "incorporated": false,
+            "explanation": "El agente recibe feedback sobre la salida correcta pero no hay acción posterior en la traza para evaluar su incorporación."
+          }
+        ],
+        "confidence": 1.0,
+        "insufficient_evidence": false
+      },
+      "judge_usage": {
+        "input_tokens": 3200,
+        "output_tokens": 2916,
+        "attempts": 1
+      }
+    }
+  ],
+  "errors": []
+}
