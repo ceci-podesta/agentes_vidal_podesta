@@ -90,6 +90,7 @@ class MyAgent:
         max_repeated_failures: int | None = None,
         max_repeated_observations: int | None = None,
         observation_tool_names: set[str] | None = None,
+        progress_observation_tools: set[str] | None = None,
         use_m3_scratchpad: bool = False,
         use_m3_planner: bool = False,
     ) -> None:
@@ -126,6 +127,13 @@ class MyAgent:
         self._max_repeated_failures = max_repeated_failures
         self._max_repeated_observations = max_repeated_observations
         self._observation_tool_names = set(observation_tool_names or set())
+        # Subconjunto de observation_tool_names que puede revelar estado
+        # nuevo del mundo (p. ej. `examine` sobre un contenedor). Un llamado
+        # exitoso a una de estas tools limpia failed_call_counts, igual que
+        # una acción no-observacional: pudo haber cambiado por que antes
+        # fallaba una acción bloqueada. Default vacio: no cambia el
+        # comportamiento de quien no lo use.
+        self._progress_observation_tools = set(progress_observation_tools or set())
         self._use_m3_scratchpad = use_m3_scratchpad
         self._use_m3_planner = use_m3_planner
         # No forma parte de AgentResult (fijo, mia_agents/types.py): expone
@@ -177,20 +185,48 @@ class MyAgent:
         # Nunca se alcanza; satisface al type checker.
         raise RuntimeError("unreachable")
 
+    @staticmethod
+    def _group_atomic_blocks(
+        messages: list[dict[str, Any]],
+    ) -> list[list[dict[str, Any]]]:
+        """Agrupa el historial en bloques indivisibles.
+
+        Un "user" o un "assistant" sin tool_calls es un bloque de un solo
+        mensaje. Un "assistant" con tool_calls forma un bloque junto con
+        los mensajes "tool" que le siguen (uno por cada tool call): Bedrock
+        exige que un toolUse y sus toolResult viajen juntos, y cortar la
+        ventana en el medio deja un toolResult huerfano (ValidationException:
+        "toolResult blocks ... exceeds ... toolUse blocks").
+        """
+        blocks: list[list[dict[str, Any]]] = []
+        index = 0
+        while index < len(messages):
+            message = messages[index]
+            tool_calls = message.get("tool_calls")
+            block_size = (
+                1 + len(tool_calls)
+                if message.get("role") == "assistant" and tool_calls
+                else 1
+            )
+            blocks.append(messages[index : index + block_size])
+            index += block_size
+        return blocks
+
     def _build_sliding_window(
         self,
         messages: list[dict[str, Any]],
     ) -> list[dict[str, Any]]:
         """Devuelve una vista acotada del historial para enviar al LLM.
 
-        Conserva los mensajes recientes. Si el ultimo mensaje del user quedo
-        fuera de esa ventana, lo incorpora y usa los lugares restantes para
-        los mensajes mas recientes.
+        Recorta por bloques atomicos (`_group_atomic_blocks`), no por
+        mensajes sueltos: nunca emite un bloque parcial. Conserva los
+        bloques mas recientes y garantiza que el bloque del ultimo mensaje
+        del user este en la ventana, igual que la version anterior por
+        mensajes.
         """
         limit = self._max_history_messages
 
-        #M2 exige que el ultimo mensaje del user esté en la ventana.
-        #Con max_history_messages definido eso seria imposible, por lo que levantamos un error. (Caso de borde)
+        # M2 exige que el ultimo mensaje del user esté en la ventana.
         if limit < 1:
             raise ValueError("max_history_messages debe ser mayor que cero.")
 
@@ -198,32 +234,61 @@ class MyAgent:
         if len(messages) <= limit:
             return list(messages)
 
-        # Primera aproximacion: los ultimos N mensajes, por recencia.
-        window = messages[-limit:]
+        blocks = self._group_atomic_blocks(messages)
 
-        # Buscamos desde el final el ultimo mensaje emitido por el usuario.
-        # run() siempre agrega un user_message antes de llamar a este metodo.
-        latest_user = next(
-            message
-            for message in reversed(messages)
-            if message.get("role") == "user"
+        # Primera aproximacion: los ultimos bloques que entren enteros,
+        # por recencia, sin partir ninguno.
+        window_blocks: list[list[dict[str, Any]]] = []
+        used = 0
+        for block in reversed(blocks):
+            if used + len(block) > limit:
+                break
+            window_blocks.append(block)
+            used += len(block)
+        window_blocks.reverse()
+
+        # Buscamos desde el final el bloque del ultimo mensaje del usuario.
+        # run() siempre agrega un user_message antes de llamar a este metodo,
+        # y un "user" siempre es un bloque de un solo mensaje.
+        latest_user_block = next(
+            block for block in reversed(blocks) if block[0].get("role") == "user"
         )
 
-        # Si el ultimo mensaje del user ya esta en la ventana reciente, no hace falta modificarla.
-        if latest_user in window:
-            return list(window)
+        # Si el bloque del ultimo user ya esta en la ventana reciente, listo.
+        if any(block is latest_user_block for block in window_blocks):
+            return [message for block in window_blocks for message in block]
 
-        #Si el ultimo mensaje del user no esta en la ventana, lo agregamos y completamos con los mensajes 
-        #mas recientes hasta llegar al limite.
-        #Caso de borde: Si limit (= max_history_messages) es 1, no tomamos mensajes adicionales al último del user
-        #Y como messages[-0:] devolveria toda la lista, trabajamos con la condición [] para limit = 1
-        recent_messages = messages[-(limit - 1):] if limit > 1 else []
+        # Caso de borde: ni siquiera el bloque mas reciente que contiene al
+        # ultimo user entra en el presupuesto. No hay forma de respetar el
+        # tope sin partirlo (y Bedrock lo rechazaria igual): fallamos claro
+        # en vez de mandar un request invalido.
+        if len(latest_user_block) > limit:
+            raise ValueError(
+                "El bloque del ultimo mensaje del usuario "
+                f"({len(latest_user_block)} mensajes) no entra en "
+                f"max_history_messages ({limit})."
+            )
 
-        # La ventana final conserva el ultimo mensaje del user y completa el "presupuesto" con los mensajes mas recientes.
-        return [latest_user, *recent_messages]
+        # El bloque del ultimo user no esta en la ventana por recencia: lo
+        # incorporamos y completamos el resto del presupuesto con los
+        # bloques mas recientes que entren enteros, igual que antes.
+        remaining = limit - len(latest_user_block)
+        filler_blocks: list[list[dict[str, Any]]] = []
+        used = 0
+        for block in reversed(blocks):
+            if block is latest_user_block:
+                continue
+            if used + len(block) > remaining:
+                break
+            filler_blocks.append(block)
+            used += len(block)
+        filler_blocks.reverse()
 
-
-
+        return [
+            message
+            for block in (latest_user_block, *filler_blocks)
+            for message in block
+        ]
 
     @staticmethod
     def _tool_call_signature(tool_call: ToolCall) -> tuple[str, str]:
@@ -453,6 +518,12 @@ class MyAgent:
                         failed_call_counts[signature] = failure_count + 1
                     elif is_observation:
                         observation_counts[signature] = observation_count + 1
+                        # Esta observacion puede haber revelado estado nuevo
+                        # (p. ej. abrio un contenedor): una accion que antes
+                        # fallaba por falta de esa informacion puede ahora
+                        # ser valida, asi que no debe seguir bloqueada.
+                        if tool_call.name in self._progress_observation_tools:
+                            failed_call_counts.clear()
                     else:
                         failed_call_counts.clear()
                         observation_counts.clear()

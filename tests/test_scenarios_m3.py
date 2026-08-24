@@ -108,6 +108,59 @@ def test_successful_action_resets_failed_call_guard() -> None:
     assert result.answer == "puerta abierta"
 
 
+def test_progress_observation_resets_failed_call_guard() -> None:
+    """Un examine que revela estado nuevo habilita reintentar un take bloqueado.
+
+    Reproduce el bug real de office-sequence: `take` falla porque el ítem
+    todavía no es visible, después un `examine` abre el contenedor y lo
+    revela, pero como `examine` es una observation tool, sin
+    `progress_observation_tools` el `take` seguiría bloqueado por la guarda
+    aunque el mundo ya haya cambiado.
+    """
+    revealed = False
+    take_calls = 0
+
+    def take(
+        item: Annotated[str, Field(description="Ítem a tomar")],
+    ) -> str:
+        nonlocal take_calls
+        take_calls += 1
+        if not revealed:
+            return "Error: no es visible o accesible desde aquí."
+        return "Tomás el ítem."
+
+    def examine(
+        target: Annotated[str, Field(description="Objeto a examinar")],
+    ) -> str:
+        nonlocal revealed
+        revealed = True
+        return "Contiene: llave_maestra [id: llave_maestra]."
+
+    take_schema = ToolSchema.from_callable(take)
+    examine_schema = ToolSchema.from_callable(examine)
+    mock = MockLLMClient([
+        _response("t1", take_schema.name, {"item": "llave_maestra"}),
+        _response("e1", examine_schema.name, {"target": "caja_fuerte"}),
+        _response("t2", take_schema.name, {"item": "llave_maestra"}),
+        LLMResponse(content="tomé la llave"),
+    ])
+    agent = build_agent({
+        "llm_client": mock,
+        "max_repeated_failures": 1,
+        "max_repeated_observations": 1,
+        "observation_tool_names": {"examine"},
+        "progress_observation_tools": {"examine"},
+    })
+    agent.register_tool(take, take_schema)
+    agent.register_tool(examine, examine_schema)
+
+    result = agent.run("conseguí la llave maestra")
+
+    assert take_calls == 2
+    assert result.steps[2].tool_output == "Tomás el ítem."
+    assert result.answer == "tomé la llave"
+
+
 def test_repeated_observation_is_blocked_without_progress() -> None:
     """Dos look idénticos sin progreso ejecutan el callable una sola vez."""
     calls = 0
