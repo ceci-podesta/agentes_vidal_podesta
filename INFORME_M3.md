@@ -7,10 +7,10 @@
 (`study-with-key`, `color-locks`, `apartment-keys`, `library-search`,
 `office-sequence`, de `easy` a `hard`) más 1 escenario `extreme`
 (`extreme-archive`). Los otros dos `extreme` (`vault-combination`,
-`backtracking-vault`) no se resolvieron — ver Sección 5, limitación d.
+`backtracking-vault`) no se resolvieron — ver Sección 5, limitación c.
 
 **Reproducir los resultados** (desde la raíz de este repo,
-`agentes_vidal_podesta-m3-world-evaluation/`):
+`agentes_vidal_podesta-m3-final-fixes/`):
 
 ```bash
 # Setup inicial (solo la primera vez)
@@ -25,37 +25,29 @@ export AWS_ACCESS_KEY_ID="tu-access-key"
 export AWS_SECRET_ACCESS_KEY="tu-secret-key"
 export AWS_SESSION_TOKEN="tu-session-token"   
 
-# Correr la suite de tests (196 tests)
+# Correr la suite de tests (197 tests)
 pytest -q
 
-# Correr la evaluación oficial (pass@k, los 6 escenarios)
+# Correr la evaluación oficial (pass@k, los 8 escenarios)
 python eval/run.py
 
 # Categorizar errores de una corrida ya generada
 python eval/error_categories.py eval/results/final/<run_id>.json
-# python eval/error_categories.py eval/results/final/20260823T201948569061Z.json
+# python eval/error_categories.py eval/results/final/20260824T184038965171Z.json
 ```
+Los resultados quedan en eval/results/final/<run_id>.json (un archivo por corrida, nombrado con el timestamp de esa corrida).
 
-Los resultados quedan en `eval/results/final/<run_id>.json` (un archivo por
-corrida, nombrado con el timestamp de esa corrida). Los dos archivos que
-cita este informe (Sección 3.1):
-
-- Con scratchpad (resultado oficial), accuracy global 26/30 (0.87):
-  `eval/results/final/20260823T201948569061Z.json`
-- Sin scratchpad (ablation, Experimento 6), accuracy global 27/30 (0.90):
-  `eval/results/final/20260823T221012501252Z.json` — para reproducir esta
-  corrida hay que poner `"use_m3_scratchpad": False` en `M3_AGENT_CONFIG`
-  (`eval/run.py`) antes de ejecutar el comando de arriba; no hay un flag de
-  línea de comandos para esto.
 
 > **Nota de estado.** Este informe se apoya en la **corrida final oficial**
-> (`pass@k`, k=5, run_id `20260823T201948569061Z`) contra
-> `amazon.nova-lite-v1:0`, con el planner explícito y el scratchpad M3
-> activados. Los 6 escenarios evaluados quedan resueltos (`pass@k ≥ 0.5`).
-> La dimensión cualitativa (LLM-as-judge, Sección 2) ya está implementada y
-> documentada, con una limitación conocida sobre su confiabilidad (Sección
-> 5, ítem i). No se inventan números: donde falta evidencia, se dice que
-> falta.
+> (`pass@k`, k=5, run_id `20260824T184038965171Z`, los ocho escenarios)
+> contra `amazon.nova-lite-v1:0`, con el planner, el scratchpad M3 y los
+> fixes de la Sección 1 (subsecciones 9-12) activados. Los 5 escenarios
+> obligatorios más `extreme-archive` quedan resueltos (`pass@k ≥ 0.5`); los
+> dos `vault-*` no. La dimensión cualitativa (LLM-as-judge, Sección 2) ya
+> está implementada y corrida sobre esta misma corrida oficial. El accuracy global obtenido fue 30/40 (0.75). Enxluyendo los
+> tres escenarios `extreme` (solo los 5 obligatorios,
+> `easy`/`medium`/`hard`), el accuracy es 24/25 (0.96). Los resultados estan guardados en
+> `eval/results/final/20260824T184038965171Z.json`. 
 
 ---
 
@@ -264,7 +256,7 @@ sin abortar por este motivo.
 
 #### 7. Herramienta de diagnóstico: `eval/manual_run.py`
 
-`python eval/run.py` corre los 6 escenarios × 5 intentos (`pass@k`) cada
+`python eval/run.py` corre los ocho escenarios × 5 intentos (`pass@k`) cada
 vez, contra Bedrock — caro en tiempo y en tokens para iterar mientras se
 prueba un cambio puntual. Para eso construimos `eval/manual_run.py`: corre
 **un solo escenario, una sola vez**, con la misma configuración real
@@ -298,12 +290,104 @@ ya existentes de M1/M2 y los de conformidad (`tests/conformance/`, fijos,
 no se tocan): `tests/test_m3_planner.py`, `tests/test_m3_research.py`,
 `tests/test_m3_scratchpad.py`, `tests/test_scenarios_m3.py` (escenarios de
 integración propios para M3), `tests/test_error_categories.py`,
-`tests/test_eval_run.py` y `tests/test_llm_judge.py`. En total suman **40
-tests nuevos**, dentro de una suite completa de 196 tests.
+`tests/test_eval_run.py` y `tests/test_llm_judge.py`. En total suman **41
+tests nuevos**, dentro de una suite completa de 197 tests.
 
 ```bash
 pytest -q
 ```
+
+#### 9. Fix de raíz de la ventana deslizante (recorte por bloques atómicos)
+
+**Contexto.** `_build_sliding_window` (M2) recortaba el historial contando
+mensajes sueltos. Pero un turno `assistant` con `tool_calls` y los mensajes
+`tool` con sus resultados son una unidad indivisible para Bedrock: si el
+corte cae en el medio, la ventana queda con un `tool` huérfano (un
+resultado sin la llamada que lo originó), y Bedrock rechaza el request
+(`ValidationException: "toolResult blocks... exceeds... toolUse blocks"`).
+Esto ya estaba documentado como limitación (más abajo, ítem **a**) con un
+workaround: subir `max_history_messages` a 200 para que el recorte casi
+nunca se disparara, sin arreglar la causa.
+
+**Qué se cambió.** `_build_sliding_window` ahora agrupa el historial en
+bloques atómicos (`_group_atomic_blocks`, `student_framework/agent.py`): un
+`user` o un `assistant` sin `tool_calls` es un bloque de un mensaje; un
+`assistant` con `tool_calls` forma un bloque junto con sus `tool`
+correspondientes. La ventana toma bloques completos desde el final, nunca
+uno parcial, y sigue garantizando que el bloque del último mensaje del
+usuario esté presente. Caso de borde: si ese bloque no entra ni solo en el
+presupuesto, se levanta un `ValueError` explícito en vez de mandarle a
+Bedrock un request que va a rechazar.
+
+Con el recorte arreglado, `eval/run.py` ya no necesita inflar el
+presupuesto: se sacó el `"max_history_messages": 200` de `M3_AGENT_CONFIG`,
+y el agente vuelve a usar el default del constructor (`50`).
+
+#### 10. Fix de la guarda anti-repetición (`progress_observation_tools`)
+
+**Contexto.** La guarda anti-repetición (subsección 5) solo limpiaba el
+contador de fallos cuando el paso exitoso **no** era una observación. Pero
+`examine` está clasificada como observación, y es la tool que revela el
+contenido de un contenedor. Un `take` que fallaba antes de abrir un
+contenedor quedaba bloqueado *después* de abrirlo — aunque el mundo ya
+había cambiado y ese `take` ahora sí sería válido. Se vio en una traza real
+de `office-sequence`: un `take(llave_maestra)` fallido, seguido de un
+`examine(caja_fuerte)` exitoso que revela esa misma llave, seguido de un
+segundo `take(llave_maestra)` bloqueado por la guarda en vez de ejecutarse.
+
+**Qué se cambió.** Parámetro nuevo `progress_observation_tools` en el
+constructor de `MyAgent` (default vacío, no cambia el comportamiento de
+quien no lo use), propagado por `build_agent`. Distingue, dentro de las
+observation tools, cuáles pueden revelar estado nuevo del mundo. En la
+config oficial: `{"examine", "research_documents"}` — `look` queda afuera
+porque nunca muta el mundo, solo redescribe la sala. Un llamado exitoso a
+una tool de este subconjunto limpia `failed_call_counts` (igual que una
+acción no-observacional), habilitando que una acción antes bloqueada se
+reintente.
+
+La regla es deliberadamente más ancha que el bug: `examine` limpia el
+contador aunque el target no sea contenedor (inerte). Se acepta porque los
+dos errores posibles no cuestan lo mismo — tratar una `examine` inerte como
+reveladora cuesta un reintento de más; tratar una `examine` reveladora como
+inerte puede bloquear una acción legítima de forma permanente. Test nuevo:
+`test_progress_observation_resets_failed_call_guard`
+(`tests/test_scenarios_m3.py`), que reproduce la traza de arriba.
+
+#### 11. Presupuesto de iteraciones subido a 40
+
+**Contexto.** Con `max_iterations=25`, los tres escenarios más difíciles
+(`office-sequence`, `vault-combination`, `backtracking-vault`) agotaban el
+tope en la mayoría de sus corridas, no por errores de razonamiento sino por
+falta de presupuesto — llegaban a estar a pocos pasos del final.
+
+**Qué se cambió.** `max_iterations`: `25` → `40` en `M3_AGENT_CONFIG`,
+uniforme para los ocho escenarios (sin ajustar por dificultad, siguiendo el
+mismo criterio de "un único agente" de más abajo). Es casi el doble del
+óptimo más grande del dataset. Subir este número recién es viable en
+términos de costo gracias a la subsección 9: con la ventana deslizante
+arreglada, el contexto de cada turno queda acotado en vez de crecer sin
+límite con más iteraciones.
+
+#### 12. Aislar el fallo de un intento individual en `eval/run.py`
+
+**Contexto.** Durante una corrida de los ocho escenarios, un intento
+disparó un `StructuredCallError`: el planificador (subsección 4) le pidió
+al modelo un `Plan`, y el modelo devolvió `steps: []` (lista vacía) las 3
+veces que `structured_call_with_usage` reintentó internamente. Esa
+excepción no estaba atrapada en ningún lado de `eval/run.py` y abortó toda
+la corrida de 40 intentos, no solo el que falló.
+
+**Qué se cambió.** El loop de `main()` ahora envuelve cada intento en un
+`try/except`: si `run_scenario` lanza cualquier excepción, se registra un
+resultado sintético con `goal_achieved=False` y el error explícito en
+`goal_reason`/`agent_result.error`, y la corrida sigue con el resto — mismo
+criterio que ya usa la evaluación cualitativa ("un juicio individual
+fallido no detiene los demás", Sección 2).
+
+> **Nota de estado sobre las subsecciones 9-12.** Estos cuatro cambios ya
+> están reflejados en la corrida oficial que cita la Sección 3.1
+> (`20260824T184038965171Z`, los ocho escenarios, `max_iterations=40`,
+> ventana por bloques atómicos, `progress_observation_tools` activo).
 
 ---
 
@@ -402,12 +486,11 @@ Se adoptó **Kimi K2 Thinking** como juez por default (`DEFAULT_JUDGE_MODEL_ID`
 en `eval/llm_judge.py`) por la mejor cobertura observada — no se lo considera
 perfecto (omitió un episodio incluso en esta calibración).
 
-**Validación de la implementación** (`20260823T201948569061Z`, la misma
-corrida de 30 intentos/6 escenarios que cita el resto del informe, evaluada
-por ambos modelos para conservar la comparación como evidencia adicional de
-la elección). Se considera una validación de la implementación, no el
-resultado final del juez, porque no incluye `vault-combination` ni
-`backtracking-vault`:
+**Validación de la implementación** (`20260823T201948569061Z`, una corrida
+anterior de 30 intentos/6 escenarios —previa a los fixes de la Sección 1—
+evaluada por ambos modelos para elegir cuál usar como juez). Se considera
+una validación de la implementación, no el resultado final del juez, porque
+no incluye `vault-combination` ni `backtracking-vault`:
 
 | Métrica | Mistral Large 3 | Kimi K2 Thinking |
 |---|---:|---:|
@@ -430,30 +513,27 @@ comparable en términos absolutos entre sí** — ver limitación en la
 Sección 5.
 
 **Resultado final del juez.** La evaluación cualitativa "de producción" —ya
-con Kimi K2 Thinking como único juez, sin comparar modelos— se corrió
-sobre los ocho escenarios del dataset completo (`DEVELOPMENT_SCENARIOS=None`),
-no sobre los seis de la corrida que este informe usa como evidencia
-cuantitativa oficial (Sección 3.1). Es una corrida distinta del agente,
-`20260824T022515999713Z` (40 intentos: los mismos 5 escenarios obligatorios
-más los 3 `extreme`), con la misma config oficial pero otro resultado de
-`pass@k` por no-determinismo del LLM (`color-locks` da 3/5 en esta corrida
-en vez de 5/5).
+con Kimi K2 Thinking como único juez, sin comparar modelos— se corrió sobre
+la misma corrida que este informe usa como evidencia cuantitativa oficial
+(Sección 3.1: `20260824T184038965171Z`, los ocho escenarios, 40 intentos).
 
 | Métrica | Kimi K2 Thinking (40 intentos, 8 escenarios) |
 |---|---:|
-| Juicios válidos | 40/40 (sin fallos) |
-| Trazas con feedback detectado | 26 de 40 |
-| Episodios detectados | 96 |
-| Episodios incorporados | 64 |
-| Tasa de incorporación (sobre lo detectado) | 66,7 % |
-| Puntaje medio (0-2) | 1,38 |
-| Tokens de entrada / salida del juez | 177.911 / 112.651 |
+| Juicios válidos | 36/40 (4 fallidos) |
+| Trazas con feedback detectado | 21 de 36 |
+| Episodios detectados | 91 |
+| Episodios incorporados | 70 |
+| Tasa de incorporación (sobre lo detectado) | 76,9 % |
+| Puntaje medio (0-2) | 1,62 |
+| Tokens de entrada / salida del juez | 243.392 / 152.084 |
 
-(archivo: `eval/results/judge/20260824T022515999713Z/20260824T023928831731Z__moonshot-kimi-k2-thinking__all.json`)
+(archivo: `eval/results/judge/20260824T184038965171Z/20260824T190142103569Z__moonshot-kimi-k2-thinking__all.json`)
 
-Esta tasa de 66,7 % es la que se audita en la limitación de la Sección 5:
-no debe leerse como "el agente incorpora el 66,7 % del feedback real", sino
-como lo que el juez logró detectar y clasificar sobre lo que detectó.
+Los 4 juicios fallidos quedan registrados en el JSON, no detienen el
+resto. Esta tasa de 76,9 % es la que se discute en la limitación de la
+Sección 5: no debe leerse como "el agente incorpora el 76,9 % del feedback
+real", sino como lo que el juez logró detectar y clasificar sobre lo que
+detectó.
 
 **Cómo se corre.** Es parte del mismo comando reproducible, pero
 desactivada por default:
@@ -463,14 +543,14 @@ desactivada por default:
 python eval/run.py               # no corre el juez, solo el pass@k
 
 # Para correr el juez sobre un reporte ya generado, sin repetir escenarios:
-python eval/llm_judge.py eval/results/final/20260823T201948569061Z.json
+python eval/llm_judge.py eval/results/final/20260824T184038965171Z.json
 ```
 
 Se deja en `False` por defecto para que reproducir el criterio de
 aprobación (`pass@k`) no le imponga a quien corrija el costo y tiempo
 extra de una segunda evaluación con LLM sobre cada intento. Los resultados
-completos de ambos modelos quedan igual disponibles en
-`eval/results/judge/20260823T201948569061Z/`.
+completos quedan igual disponibles en
+`eval/results/judge/20260824T184038965171Z/`.
 
 ### Análisis de errores — categorías
 
@@ -508,29 +588,27 @@ Experimento 3).
 
 ## 3. Resultados
 
-### 3.1 Corrida final (criterio de aprobación)
+### 3.1 Corrida final 
 
-Esta sección presenta dos corridas oficiales, una al lado de la otra, que
-solo difieren en `use_m3_scratchpad`:
+Corrida oficial vigente, ya con los fixes de la Sección 1 (subsecciones
+9-12: ventana por bloques atómicos, guarda anti-repetición corregida,
+`max_iterations=40`) aplicados:
 
 ```bash
 python eval/run.py
 ```
 
-Ambas evaluaron los 5 escenarios obligatorios más `extreme-archive`, con
-`amazon.nova-lite-v1:0` (`us-east-2`), `pass@k` con k=5 (cada escenario
-corrido 5 veces), y comparten el resto de la configuración:
+`eval/results/final/20260824T184038965171Z.json` — **este es el JSON que
+se toma como resultado final**. Evalúa el dataset completo (los ocho
+escenarios, `DEVELOPMENT_SCENARIOS=None`) con `amazon.nova-lite-v1:0`
+(`us-east-2`), `pass@k` con k=5 (40 intentos en total), y:
 
 - `use_m3_planner=True` (planner explícito, Experimento 4).
-- `max_iterations=25` (hasta 25 iteraciones por intento).
-- `max_history_messages=200` (ventana de historial de hasta 200 mensajes).
-- `max_repeated_failures=max_repeated_observations=1` (guardas
-  anti-repetición, cortan en la primera repetición).
-
-#### Con scratchpad (`use_m3_scratchpad=True`) — resultado oficial
-
-`eval/results/final/20260823T201948569061Z.json` — **este es el JSON que se
-toma como resultado final** (el que cuenta para el criterio de aprobación).
+- `use_m3_scratchpad=True` (scratchpad M3, Sección 1 subsección 3).
+- `max_iterations=40` (Sección 1, subsección 11).
+- `max_repeated_failures=max_repeated_observations=1`, con
+  `progress_observation_tools={"examine", "research_documents"}` (Sección
+  1, subsección 10).
 
 **`pass@k` por escenario (umbral de resolución: 0.5):**
 
@@ -539,98 +617,81 @@ toma como resultado final** (el que cuenta para el criterio de aprobación).
 | `study-with-key` | easy | 5/5 | 1.00 | ✅ |
 | `color-locks` | medium | 5/5 | 1.00 | ✅ |
 | `apartment-keys` | medium | 4/5 | 0.80 | ✅ |
-| `library-search` | hard | 4/5 | 0.80 | ✅ |
-| `office-sequence` | hard | 4/5 | 0.80 | ✅ |
-| `extreme-archive` | extreme | 4/5 | 0.80 | ✅ |
+| `library-search` | hard | 5/5 | 1.00 | ✅ |
+| `office-sequence` | hard | 5/5 | 1.00 | ✅ |
+| `extreme-archive` | extreme | 5/5 | 1.00 | ✅ |
+| `backtracking-vault` | extreme | 1/5 | 0.20 | ❌ |
+| `vault-combination` | extreme | 0/5 | 0.00 | ❌ |
 
-Los 6 escenarios quedan resueltos.
+Los 5 escenarios obligatorios más `extreme-archive` quedan resueltos —
+`library-search` y `office-sequence` pasan a 5/5 (antes 4/5). Los otros dos
+`extreme` (`vault-combination`, `backtracking-vault`) siguen sin resolverse
+bajo el umbral de `pass@k`, aunque `backtracking-vault` pasó de 0/5 a 1/5:
+los fixes ayudaron pero no alcanzan todavía para ese escenario (ver más
+abajo y la Limitación **c**, Sección 5).
 
-**Accuracy global y por dificultad** (30 evaluaciones = 6 escenarios × 5
+**Accuracy global y por dificultad** (40 evaluaciones = 8 escenarios × 5
 intentos):
 
 | | Evaluados | Logrados | Accuracy |
 |---|---:|---:|---:|
-| Global | 30 | 26 | 0.87 |
+| Global | 40 | 30 | 0.75 |
 | `easy` | 5 | 5 | 1.00 |
 | `medium` | 10 | 9 | 0.90 |
-| `hard` | 10 | 8 | 0.80 |
-| `extreme` | 5 | 4 | 0.80 |
+| `hard` | 10 | 10 | 1.00 |
+| `extreme` | 15 | 6 | 0.40 |
+| Sin `extreme` (solo obligatorios) | 25 | 24 | 0.96 |
 
-**Costo y latencia:** 428 tool calls del agente principal (63 con error),
-más 88 tool calls de workers delegados (8 con error, solo en
-`extreme-archive`); 1.647.536 tokens de entrada / 34.920 de salida del
-principal; duración total 643 s (~10,7 min), promedio 21,4 s por intento.
+`hard` llega a 1.00 (antes 0.80) — es el efecto directo de subir
+`max_iterations` a 40 y arreglar la guarda anti-repetición.
+`extreme` incluye ahora los tres escenarios `extreme`, no solo
+`extreme-archive`: por eso baja a 0.40 aunque `extreme-archive` esté en
+1.00 — los dos `vault-*` siguen sin resolverse y arrastran el promedio. Sin
+esos tres escenarios (solo los 5 obligatorios, `easy`/`medium`/`hard`), la
+accuracy es 24/25 (0.96).
 
-**Análisis de errores** (`eval/error_categories.py` sobre esta misma corrida,
-30 intentos evaluados; un intento puede caer en más de una categoría):
+**Costo y latencia:** 915 tool calls del agente principal (209 con error),
+más 88 tool calls de workers delegados (18 workers, 26 con error, solo en
+escenarios con `research_documents`); 4.009.790 tokens de entrada /
+65.314 de salida del principal (más 68.615 / 6.626 de los workers);
+duración total 1.207,5 s (~20,1 min), promedio 30,2 s por intento. Es
+sustancialmente más caro que la corrida anterior de 6 escenarios —
+esperable: son 8 escenarios en vez de 6, con hasta 40 iteraciones en vez de
+25, y los dos `vault-*` que no llegan al goal consumen su presupuesto
+completo en casi todos los intentos.
 
-| Categoría | Intentos afectados |
-|---|---:|
-| `violacion_estado` (ítem/destino/dirección inválidos) | 14 |
-| `accion_redundante` (acción u observación repetida sin progreso) | 8 |
-| `limite_iteraciones` | 7 |
-| `planificacion_orden_incorrecto` | 1 |
-| `presion_contexto` | 1 |
-| `terminacion_prematura` | 1 |
-| `id_inventado` | 0 |
+**Análisis de errores** (`eval/error_categories.py` sobre esta misma
+corrida, 40 intentos evaluados; un intento puede caer en más de una
+categoría):
 
-`violacion_estado` y `accion_redundante` son, en su gran mayoría,
-**recuperables**: aparecen en intentos que igual llegaron a
-`goal_achieved: true` (p. ej. `apartment-keys` probando `use` en un cuarto
-sin la puerta visible, `office-sequence` fallando una dirección de `go` y
-corrigiendo con la salida que devuelve el error). Son ineficiencia, no
-fallo de objetivo — coherente con la dimensión "recuperación" que también
-usa la rúbrica cualitativa descartada (Sección 2).
+```bash
+python eval/error_categories.py eval/results/final/20260824T184038965171Z.json
+```
 
-`limite_iteraciones` (7/30) concentra el costo real: aparece en las 3 fallas
-de `office-sequence` (dos con `planificacion_orden_incorrecto` combinado) y
-en la falla de `apartment-keys`, siempre por agotar el presupuesto en
-reintentos bloqueados por la guardia anti-repetición o navegación perdida,
-no por falta de información. La única falla de `library-search` es la
-excepción: `terminacion_prematura` — el agente devolvió una respuesta final
-sin haber conseguido `llave_grabada`, sin agotar `max_iterations`.
+| Categoría | Intentos afectados | % de los 40 intentos |
+|---|---:|---:|
+| `violacion_estado` (ítem/destino/dirección inválidos) | 23 | 57,5 % |
+| `accion_redundante` (acción u observación repetida sin progreso) | 16 | 40,0 % |
+| `limite_iteraciones` | 15 | 37,5 % |
+| `presion_contexto` | 10 | 25,0 % |
+| `id_inventado` | 2 | 5,0 % |
+| `terminacion_prematura` | 0 | 0,0 % |
+| `planificacion_orden_incorrecto` | 0 | 0,0 % |
 
-La única falla de `extreme-archive` es cualitativamente distinta: intentó
-`use`/`take` directamente sobre `expediente_1042`, `expediente_1387`, etc.
-(los IDs de la estantería) en vez de llamar a `research_documents` sobre la
-colección completa como indica el prompt — 12 `violacion_estado` + 20
-`accion_redundante` en un solo intento, y termina con `presion_contexto`
-(116.808 tokens de entrada sin alcanzar el goal). Es el único intento donde
-el modelo no siguió la instrucción de delegar sobre colecciones grandes.
-
-#### Sin scratchpad (`use_m3_scratchpad=False`) — ablation
-
-`eval/results/final/20260823T221012501252Z.json`. Mismo comando, misma
-config, con una única diferencia respecto a la corrida de arriba:
-`use_m3_scratchpad=False`.
-
-**`pass@k` por escenario:**
-
-| Escenario | Dificultad | Éxitos/Intentos | `pass@k` | ¿Resuelto? |
-|---|---|---:|---:|:---:|
-| `study-with-key` | easy | 5/5 | 1.00 | ✅ |
-| `color-locks` | medium | 5/5 | 1.00 | ✅ |
-| `apartment-keys` | medium | 5/5 | 1.00 | ✅ |
-| `library-search` | hard | 3/5 | 0.60 | ✅ |
-| `office-sequence` | hard | 5/5 | 1.00 | ✅ |
-| `extreme-archive` | extreme | 4/5 | 0.80 | ✅ |
-
-**Accuracy global:** 27/30 (0.90) — no se recalculó el desglose por
-dificultad para esta corrida.
-
-**Costo y latencia:** 1.968.058 tokens de entrada, duración total 794 s
-(~13,2 min). No se corrió `eval/error_categories.py` sobre esta corrida —
-el desglose por categoría de error de arriba es específico de la corrida
-con scratchpad.
-
-**Comparación directa:** apagar el scratchpad dio accuracy global
-*levemente mejor* (0.90 vs. 0.87) y resolvió mejor `office-sequence` y
-`apartment-keys`, pero empeoró `library-search` (0.80 → 0.60) y costó más
-tokens (+320.522) y más tiempo (+151 s). El scratchpad **no** es la
-configuración oficial por ser estrictamente mejor en accuracy — es la que
-se usa para el criterio de aprobación, y el análisis completo de este
-trade-off (por qué ayuda en unos escenarios y no en otros) está en el
-Experimento 6 (Sección 4).
+Los 10 intentos que no llegaron al goal (1 de `apartment-keys`, 4 de
+`backtracking-vault`, 5 de `vault-combination`) comparten el mismo patrón:
+`violacion_estado` + `accion_redundante` + `limite_iteraciones` +
+`presion_contexto` juntos — agotan el presupuesto de iteraciones
+acumulando errores recuperables (intentos fallidos, observaciones
+repetidas) y terminan con un volumen de tokens alto sin alcanzar el goal.
+Uno de los intentos de `vault-combination` además usó un ID inventado. A
+diferencia de la corrida anterior (donde `office-sequence` y
+`library-search` fallaban específicamente por quedarse sin turnos estando
+cerca del final), acá esos dos escenarios ya no aparecen entre los
+fallidos — los fixes de la Sección 1 los resolvieron. Lo que queda son los
+dos `vault-*`, con acertijos más largos (óptimo publicado de 18-21 tool
+calls) que ni con `max_iterations=40` alcanzan a completar de forma
+confiable.
 
 ---
 
@@ -717,13 +778,13 @@ iteraciones extra alcanzaron sin degradar los tres escenarios más simples.
 
 **Aumentar `max_iterations` no es una solución general.** Solo ayuda cuando
 el agente está bien encarado y le faltan pasos para llegar — no cuando el
-enfoque está mal desde el principio. El único intento fallido de
-`extreme-archive` en la corrida oficial (Sección 3.1, análisis de errores)
-es el ejemplo contrario: el agente ignoró la instrucción de usar
-`research_documents` e intentó `use`/`take` directamente sobre los IDs de
-la estantería desde el arranque — ahí más iteraciones no habrían ayudado,
-solo habría gastado más tokens repitiendo el mismo enfoque equivocado (y de
-hecho terminó cortado por `presion_contexto`, no por `max_iterations`).
+enfoque está mal desde el principio. Un intento fallido de `extreme-archive`
+observado en una corrida anterior (`20260823T201948569061Z`) es el ejemplo
+contrario: el agente ignoró la instrucción de usar `research_documents` e
+intentó `use`/`take` directamente sobre los IDs de la estantería desde el
+arranque — ahí más iteraciones no habrían ayudado, solo habría gastado más
+tokens repitiendo el mismo enfoque equivocado (y de hecho terminó cortado
+por `presion_contexto`, no por `max_iterations`).
 
 **Limitación:** mismo caveat de n=1 por condición. Además, `25` fue elegido
 por prueba y ajuste, no por un análisis de cuántas iteraciones "recuperables"
@@ -877,10 +938,13 @@ corrida oficial.
 adicionales (volver a `examine` tras abrir un contenedor con `use`; tomar
 todo lo revelado antes de salir de la sala; no repetir una llamada ya
 bloqueada por la guardia); no se aisló cuánto aportó cada una por separado.
-La falla restante de `office-sequence` en la corrida final (1/5) ya no es
-por este motivo: el agente terminó tomando ambos ítems pero agotó las
-iteraciones en reintentos de `go` bloqueados por la guardia antes de volver
-a la puerta principal (Sección 3.1, análisis de errores).
+En la corrida citada en esta sección quedaba una falla restante de
+`office-sequence` (1/5) por un motivo distinto: el agente terminaba tomando
+ambos ítems pero agotaba las iteraciones en reintentos de `go` bloqueados
+por la guardia antes de volver a la puerta principal. Ese motivo específico
+ya no aparece en la corrida oficial vigente (Sección 3.1: `office-sequence`
+5/5) — corregido por la guarda anti-repetición (Sección 1, subsección 10) y
+el mayor presupuesto de iteraciones (subsección 11).
 
 ### Experimento 6 — Scratchpad activado vs. desactivado (ablation completo)
 
@@ -892,46 +956,54 @@ como para justificar ese costo, o solo en los que motivaron su diseño?
 **Qué se cambió:** `use_m3_scratchpad`: `True` → `False` — el bloque de
 estado determinístico deja de generarse e inyectarse por completo (a
 diferencia del Experimento 1, que solo variaba si el prompt *pedía*
-consultarlo, sin apagar el mecanismo en sí). Corrida `pass@k` oficial
-completa (k=5, 6 escenarios) en ambas condiciones.
+consultarlo, sin apagar el mecanismo en sí). Corrida `pass@k` completa
+(k=5, los ocho escenarios) en ambas condiciones, sobre la config vigente
+(fixes de la Sección 1, subsecciones 9-12, `max_iterations=40`).
 
 **Qué se buscaba mejorar (o, en este caso, verificar):** si apagar el
 scratchpad degradaba la accuracy general, dado su costo en tokens — es
 decir, confirmar que vale la pena mantenerlo activo en la config oficial.
 
-**Qué se mejoró (y qué no):** tabla completa (`pass@k` por escenario,
-accuracy global, tokens, duración) en la Sección 3.1, "Con scratchpad vs.
-sin scratchpad". Resumen: apagar el scratchpad dio accuracy global
-*levemente mejor*, y `office-sequence` — el escenario que motivó el
-Experimento 5 — mejoró (4/5 → 5/5) sin él. Al mismo tiempo, `library-search`
-empeoró (4/5 → 3/5) y el costo subió: sin el resumen compacto, el modelo
-depende del historial crudo completo (`max_history_messages=200`), más
-verboso por turno que el bloque de scratchpad.
+**Qué se mejoró (y qué no):**
 
-Las dos fallas nuevas de `library-search` comparten una causa concreta:
-en ambas, el agente nunca examinó los libros de la estantería uno por uno
-(el paso que revela `llave_caja` dentro de `libro_sermones`) — en una
-probó `use` de cada libro directamente sobre la puerta sin haberlo tomado
-ni examinado, en la otra se quedó repitiendo observaciones ya hechas sin
-avanzar a examinar ningún libro individual. Es la misma mecánica que el
-scratchpad, cuando está activo, ayuda a sostener (recordar en qué punto de
-una secuencia de exploración larga se está parado).
+| Escenario | Con scratchpad (`pass@k`) | Sin scratchpad (`pass@k`) |
+|---|---:|---:|
+| `study-with-key` | 5/5 (1.00) ✅ | 4/5 (0.80) ✅ |
+| `color-locks` | 5/5 (1.00) ✅ | 5/5 (1.00) ✅ |
+| `apartment-keys` | 4/5 (0.80) ✅ | 3/5 (0.60) ✅ |
+| `library-search` | 5/5 (1.00) ✅ | 4/5 (0.80) ✅ |
+| `office-sequence` | 5/5 (1.00) ✅ | 1/5 (0.20) ❌ |
+| `extreme-archive` | 5/5 (1.00) ✅ | 5/5 (1.00) ✅ |
+| `backtracking-vault` | 1/5 (0.20) ❌ | 1/5 (0.20) ❌ |
+| `vault-combination` | 0/5 (0.00) ❌ | 1/5 (0.20) ❌ |
+| **Accuracy global** | **30/40 (0.75)** | **24/40 (0.60)** |
+| Tokens de entrada (total) | 4.078.405 | 4.659.798 |
+| Tokens de salida (total) | 71.940 | 78.097 |
+| Duración total | 1.207,5 s | 1.187,3 s |
 
-**Conclusión:** el scratchpad no es una mejora estrictamente positiva para
-todos los escenarios de este dataset con este modelo — ayuda en exploración
-secuencial larga de un solo lugar (`library-search`, 8 objetos a revisar en
-la misma sala) y es neutral o levemente negativo en escenarios donde el
-historial crudo ya alcanza (multi-sala con pocos objetos por sala,
-`apartment-keys`/`office-sequence`). El costo en tokens de mantenerlo
-siempre activo es real y medible.
+(archivos: `eval/results/final/20260824T184038965171Z.json` con scratchpad,
+`eval/results/final/20260824T201425994817Z.json` sin scratchpad)
 
-**Limitación:** una sola corrida `pass@k` (k=5) por condición; varias de las
-diferencias (`apartment-keys` y `office-sequence`, 4/5 vs 5/5) son de un solo
-intento y están dentro del rango esperable de ruido de un LLM no
-determinista — no alcanza para afirmar causalidad en esos dos casos
-específicos. La diferencia en `library-search` (4/5 vs 3/5, con una causa
-identificada y consistente en las dos fallas) es la más interpretable de
-las tres.
+Sobre esta config, apagar el scratchpad **empeora** la accuracy global
+(0.75 → 0.60) y cuesta más tokens. El caso más grave es `office-sequence`:
+colapsa de 5/5 a 1/5 y deja de estar resuelto — sin el scratchpad, el
+agente vuelve a perder de vista objetos revelados en cuartos anteriores a
+medida que avanza por las salas. `study-with-key`, `apartment-keys` y
+`library-search` también empeoran, aunque sin cruzar el umbral de
+`pass@k`. La única mejora es marginal y en un escenario no resuelto de
+todas formas: `vault-combination` pasa de 0/5 a 1/5.
+
+**Conclusión:** con la config vigente, el scratchpad es necesario para que
+`office-sequence` se mantenga resuelto, y su costo en tokens (~12% más
+barato con scratchpad que sin él, en esta corrida) ya no es un trade-off:
+es estrictamente mejor en accuracy y más barato. Queda como la opción
+correcta para la config oficial.
+
+**Limitación:** una sola corrida `pass@k` (k=5) por condición; varias de
+las diferencias de un solo intento (`study-with-key`, `apartment-keys`,
+`library-search`) están dentro del rango esperable de ruido de un LLM no
+determinista. La diferencia en `office-sequence` (5/5 vs 1/5, con una causa
+consistente: pérdida de estado entre salas) es la más interpretable.
 
 ---
 
@@ -939,65 +1011,61 @@ las tres.
 
 **Limitaciones actuales:**
 
-**a. Manejo de la ventana de contexto — bug real, workaround, no fix de raíz.**
+**a. Manejo de la ventana de contexto — bug real, ya corregido de raíz.**
 
-`_build_sliding_window` (M2, `student_framework/agent.py`) recorta el
+`_build_sliding_window` (M2, `student_framework/agent.py`) recortaba el
 historial por cantidad de mensajes, sin respetar que un turno del LLM con
 `tool_calls` y sus `toolResult` correspondientes son un grupo atómico para
-Bedrock. Con `max_iterations=25`, el historial puede acercarse al límite
-por defecto de `max_history_messages=50`, y si el recorte cae en medio de
-ese grupo, Bedrock devuelve
-`ValidationException: "toolResult blocks... exceeds... toolUse blocks"`
-y la corrida completa aborta sin producir ningún resultado. Se mitigó
-subiendo `max_history_messages` a 200 en `M3_AGENT_CONFIG` (da margen
-amplio para que el recorte prácticamente nunca se dispare con este
-dataset), pero es un workaround: no reescribe `_build_sliding_window` para
-que respete los grupos atómicos, y con escenarios de más pasos que los de
-este dataset podría volver a aparecer. Separado de esto —y sí resuelto de
-raíz—, `extreme-archive` (~16K tokens en 20 expedientes) no entra en el
-historial principal por volumen, no por recorte: para eso está la
-delegación a `research_documents` (Sección 1, Experimento 3), que evita
-que esa prosa llegue al contexto del agente principal.
+Bedrock. Si el recorte caía en medio de ese grupo, Bedrock devolvía
+`ValidationException: "toolResult blocks... exceeds... toolUse blocks"` y
+la corrida completa abortaba sin producir ningún resultado. Se mitigó
+primero subiendo `max_history_messages` a 200 (workaround: daba margen para
+que el recorte casi nunca se disparara, sin arreglar la causa), y después
+se corrigió de raíz recortando por bloques atómicos en vez de mensajes
+sueltos (Sección 1, subsección 9) — `max_history_messages` volvió a su
+default de 50. Separado de esto, `extreme-archive` (~16K tokens en 20
+expedientes) no entra en el historial principal por volumen, no por
+recorte: para eso está la delegación a `research_documents` (Sección 1,
+Experimento 3), que evita que esa prosa llegue al contexto del agente
+principal.
 
-**b. Resultado contraintuitivo del ablation de scratchpad (Experimento 6).**
+**b. El ablation de scratchpad (Experimento 6) es de una sola corrida por
+condición.**
 
-El ablation completo dio accuracy global levemente mejor sin el scratchpad,
-aunque `library-search` empeoró — con una sola corrida `pass@k` por
-condición. Varias de las diferencias por escenario (`apartment-keys`,
-`office-sequence`) son de un solo intento y no alcanzan para afirmar
-causalidad; solo la de `library-search` tiene una causa identificada y
-consistente entre sus dos fallas.
+El scratchpad resultó necesario: apagarlo baja la accuracy global (0.75 →
+0.60) y hace que `office-sequence` deje de resolverse (5/5 → 1/5). Es una
+sola corrida `pass@k` por condición — no alcanza para afirmar causalidad
+fina en las diferencias de un solo intento (`study-with-key`,
+`apartment-keys`, `library-search`), aunque la de `office-sequence` es
+consistente con una causa identificada: pérdida de estado entre salas sin
+el scratchpad.
 
-**c. Dos modos de fallo residuales sin resolver.**
+**c. `vault-combination` y `backtracking-vault` sin resolver.**
 
-Identificados en el análisis de errores (Sección 3.1) pero no resueltos: en
-`office-sequence`, un intento falló por agotar iteraciones en reintentos de
-`go` bloqueados por la guardia anti-repetición después de haber conseguido
-ambos ítems (no es un problema de estado ni de plan, es de
-recuperación/navegación); en `extreme-archive`, un intento ignoró por
-completo la instrucción de usar `research_documents` y probó `use`/`take`
-uno por uno sobre los 20 IDs de la estantería, terminando por presión de
-contexto — la instrucción de delegar no se sigue el 100% de las veces.
+Los dos escenarios `extreme` no obligatorios siguen sin resolverse aun con
+los fixes de la Sección 1 (subsecciones 9-12) y `max_iterations=40`.
+`backtracking-vault` mejoró de 0/5 a 1/5, pero sigue debajo del umbral;
+`vault-combination` se mantiene en 0/5. Los 10 intentos fallidos de la
+corrida oficial (Sección 3.1) comparten el mismo patrón: agotan el
+presupuesto de iteraciones acumulando errores recuperables, sin llegar al
+goal — son los acertijos más largos del dataset (óptimo publicado de 18-21
+tool calls) y el margen de `max_iterations=40` no alcanza para sostenerlos
+de forma confiable. No se investigó si el límite que queda es del framework
+(prompt, guardas) o del modelo elegido (Nova Lite): no se probó con Nova
+Pro para aislar esa variable.
 
-**d. `vault-combination` y `backtracking-vault` sin resolver.**
-
-Los dos escenarios `extreme` no obligatorios no se resuelven. No se
-investigó si el límite es del framework (prompt, presupuesto de
-iteraciones) o del modelo elegido (Nova Lite): no se probó con Nova Pro
-para aislar esa variable.
-
-**e. La delegación de `research_documents` no se generalizó.**
+**d. La delegación de `research_documents` no se generalizó.**
 
 Es específica para "colecciones de más de cinco documentos similares" vía
 instrucción de prompt; no hay una heurística en código que decida cuándo
 delegar.
 
-**f. El costo de tokens de los workers delegados no se compensa con nada.**
+**e. El costo de tokens de los workers delegados no se compensa con nada.**
 
 La estrategia evita el desborde de contexto a costa de más llamadas al LLM
 en total.
 
-**g. El agente a veces no se detiene apenas cumple el goal.**
+**f. El agente a veces no se detiene apenas cumple el goal.**
 
 `check_goal` verifica el estado del mundo, no lo que dice el agente
 (Sección 2) — el agente no recibe una señal explícita de "ya ganaste"
@@ -1010,7 +1078,7 @@ alcanzó), pero sí infla el conteo de pasos y tokens de esos intentos.
 `[PENDIENTE: agregar un ejemplo concreto de una traza real con este
 patrón.]`
 
-**h. El agente base (sin planner) tiene dificultad para planificar tareas
+**g. El agente base (sin planner) tiene dificultad para planificar tareas
 de varios pasos.**
 
 En `color-locks` y `office-sequence`, sin el planner explícito, el agente
@@ -1022,18 +1090,20 @@ config oficial (Sección 3.1), pero es una limitación del agente base, no
 algo resuelto en el loop ReAct en sí: sin esta pieza agregada, la
 dificultad para planificar reaparece.
 
-**i. El LLM-as-judge no es una medición exacta — hay que leer su porcentaje
+**h. El LLM-as-judge no es una medición exacta — hay que leer su porcentaje
 con cuidado.**
 
-Se auditó la salida de Kimi K2 Thinking sobre el "resultado final del juez"
-(Sección 2: 40 intentos, los 8 escenarios) contra una revisión más profunda
-hecha con un modelo más potente (GPT-5.6 Sol) — archivo
+Se auditó la salida de Kimi K2 Thinking (40 intentos, los 8 escenarios)
+contra una revisión más profunda hecha con un modelo más potente
+(GPT-5.6 Sol) — archivo
 `eval/results/judge/20260824T022515999713Z/20260824T023928831731Z__moonshot-kimi-k2-thinking__all.json`.
-Nota: esta corrida del agente es distinta de la que este informe cita como
-evidencia cuantitativa oficial en la Sección 3.1 (30 intentos, 6 escenarios) —
-ver la aclaración en Sección 2. Los hallazgos de esta auditoría son sobre el
-comportamiento del juez, no del agente, así que se generalizan más allá de
-esta corrida puntual:
+Nota: esa corrida del agente es anterior a los fixes de la Sección 1
+(subsecciones 9-12) — es distinta de la que este informe cita como
+evidencia oficial en las Secciones 2 y 3.1 (`20260824T184038965171Z`), y
+esta auditoría de calidad del juez no se repitió sobre la corrida vigente
+(ver "qué construiríamos a continuación", ítem 1). Los hallazgos son sobre
+el comportamiento del juez, no del agente, así que se generalizan más allá
+de esta corrida puntual:
 
 - **Buena precisión, cobertura incompleta:** cuando el juez marcó un
   episodio como feedback, casi siempre lo era (96,9 % de precisión), pero
@@ -1061,28 +1131,28 @@ citarse sin esta aclaración.
 
 **Qué construiríamos a continuación:**
 
-1. Repetir esta auditoría de calidad del juez sobre la corrida oficial de
-   30 intentos (la que cita el resto del informe), no solo sobre la de 40,
-   para saber si estos mismos patrones de error aparecen ahí.
-2. Repetir el Experimento 6 con más corridas por condición para separar señal
-   de ruido en `apartment-keys` y `office-sequence`, y decidir si conviene
-   activar el scratchpad solo para escenarios con muchos objetos en una
-   misma sala (`library-search`, `extreme-archive`) en vez de siempre.
-3. Investigar los dos modos de fallo residuales de la sección de
-   limitaciones (el bloqueo de `go` en `office-sequence`, el bypass de
-   `research_documents` en `extreme-archive`) — ninguno de los dos necesita
-   una intervención nueva de diseño, probablemente alcance con ajustar la
-   guardia anti-repetición y reforzar la instrucción de delegación.
-4. Reescribir `_build_sliding_window` para recortar por grupos atómicos
-   (turno de `tool_calls` + sus `toolResult`), no por cantidad de mensajes —
-   arreglo de raíz del bug de Bedrock en vez del workaround de
-   `max_history_messages=200`.
-5. Repetir los Experimentos 1-3 con 3-5 corridas por condición, y ablacionar
+1. Repetir esta auditoría de calidad del juez sobre la corrida oficial
+   vigente (`20260824T184038965171Z`, la que cita el resto del informe),
+   ya que la auditoría disponible es sobre una corrida anterior
+   (`20260824T022515999713Z`, previa a los fixes de la Sección 1) para
+   saber si estos mismos patrones de error del juez se sostienen.
+2. Repetir el Experimento 6 con más corridas por condición sobre la config
+   vigente (ya se repitió una vez sobre los ocho escenarios, Sección 4) para
+   separar señal de ruido en `study-with-key`, `apartment-keys` y
+   `library-search`, donde la diferencia con/sin scratchpad es de un solo
+   intento.
+3. Analizar en detalle las trazas de `vault-combination` y
+   `backtracking-vault` que agotan `max_iterations=40` (Sección 3.1,
+   análisis de errores) para saber si están cerca del final —como pasaba
+   antes con `office-sequence`/`library-search` en 25— o genuinamente
+   perdidas, y decidir si conviene un presupuesto todavía mayor o si el
+   límite dejó de ser de iteraciones.
+4. Repetir los Experimentos 1-3 con 3-5 corridas por condición, y ablacionar
    por separado cada componente de los paquetes de los Experimentos 4 y 5,
    para poder hablar de tendencia y de causalidad por pieza, no de una sola
    muestra ni de un paquete agregado.
-6. Probar `vault-combination` y `backtracking-vault` con Nova Pro para
+5. Probar `vault-combination` y `backtracking-vault` con Nova Pro para
    separar "no lo resuelve este framework" de "no lo resuelve este modelo".
-7. Una función que compare métricas entre corridas guardadas
+6. Una función que compare métricas entre corridas guardadas
    (`eval/results/**/*.json`) para no tener que leer JSON a mano al iterar
    sobre el prompt.

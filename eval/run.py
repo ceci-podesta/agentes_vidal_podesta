@@ -101,7 +101,7 @@ M3_AGENT_CONFIG = {
     # la sala. Un llamado exitoso a una de estas limpia failed_call_counts
     # (ver Limitaciones en INFORME_M3.md, guarda anti-repeticion).
     "progress_observation_tools": {"examine", "research_documents"},
-    "use_m3_scratchpad": False,
+    "use_m3_scratchpad": True,
     # Activado tras el experimento planner vs ReAct puro (ver INFORME_M3.md):
     # 3/3 en color-locks y 2/3 en office-sequence con planner, contra 2/5 y
     # 2/5 sin el en el pass@k oficial. Para volver a ReAct puro sin planner,
