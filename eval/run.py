@@ -50,25 +50,19 @@ DIFFICULTY_ORDER = {
 # backtracking-vault) no son obligatorios y hoy no se resuelven; quedan
 # fuera para no gastar tiempo/costo de Bedrock en la corrida que se cita
 # en el informe. Usar None para evaluar el dataset completo (los 8).
-DEVELOPMENT_SCENARIOS: list[str] | None = None
-# [
-#     "study-with-key",
-#     "color-locks",
-#     "apartment-keys",
-#     "library-search",
-#     "office-sequence",
-#     "extreme-archive",
-# ]
+DEVELOPMENT_SCENARIOS: list[str] | None = [
+    "study-with-key",
+    "color-locks",
+    "apartment-keys",
+    "library-search",
+    "office-sequence",
+    "extreme-archive",
+]
 
 # "final" marca una corrida como evidencia oficial para el informe;
 # "development" marca corridas exploratorias/de diagnostico. Es
 # independiente del subconjunto de escenarios elegido arriba.
 RUN_KIND = "final"
-
-# La evaluacion cualitativa forma parte del mismo entrypoint reproducible.
-RUN_LLM_JUDGE = True
-JUDGE_MODEL_ID = DEFAULT_JUDGE_MODEL_ID
-JUDGE_REGION = DEFAULT_JUDGE_REGION
 
 # Repeticiones por escenario para pass@k (ENUNCIADO_M3.md lo sugiere
 # explicitamente como metrica valida). Una sola corrida no alcanza para
@@ -80,6 +74,16 @@ REPEATS_PER_SCENARIO = 5
 
 # Umbral de exito para considerar un escenario "resuelto" bajo pass@k.
 PASS_AT_K_THRESHOLD = 0.5
+
+# La evaluacion cualitativa (LLM-as-judge) corre sobre las trazas ya
+# generadas por esta misma corrida, sin volver a llamar al agente. Se deja
+# en False por defecto para que `python eval/run.py` no le sume a un
+# profesor que solo quiere reproducir el pass@k el costo/tiempo extra de
+# evaluar cada intento con un segundo LLM. Para correrla manualmente sobre
+# un reporte ya guardado: `python eval/llm_judge.py <report.json>`.
+RUN_LLM_JUDGE = False
+JUDGE_MODEL_ID = DEFAULT_JUDGE_MODEL_ID
+JUDGE_REGION = DEFAULT_JUDGE_REGION
 
 M3_AGENT_CONFIG = {
     "max_iterations": 25,
@@ -519,6 +523,7 @@ def save_report(report: dict[str, Any], output_dir: Path) -> Path:
     )
     return report_path
 
+
 def run_qualitative_evaluation(
     report: dict[str, Any],
     report_path: Path,
@@ -575,7 +580,6 @@ def main() -> int:
     print(json.dumps(report, ensure_ascii=False, indent=2))
     print(f"Reporte final guardado en: {report_path}", file=sys.stderr)
 
-    judge_report: dict[str, Any] | None = None
     if RUN_LLM_JUDGE:
         print(
             "Ejecutando evaluacion cualitativa con LLM-as-judge...",

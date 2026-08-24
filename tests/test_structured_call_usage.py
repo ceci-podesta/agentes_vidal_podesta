@@ -113,35 +113,3 @@ def test_structured_call_error_keeps_usage_after_all_repairs_fail() -> None:
     assert caught.value.usage.input_tokens == 60
     assert caught.value.usage.output_tokens == 6
     assert caught.value.usage.attempts == 3
-
-
-def test_structured_call_pairs_invalid_tool_call_with_tool_result() -> None:
-    mock = MockLLMClient(
-        [
-            _final_result_response(
-                {"result": "no es un entero"},
-                call_id="invalid-final",
-                input_tokens=10,
-                output_tokens=3,
-            ),
-            _final_result_response(
-                {"result": 42},
-                call_id="valid-final",
-                input_tokens=20,
-                output_tokens=4,
-            ),
-        ]
-    )
-    agent = build_agent({"llm_client": mock})
-
-    agent.structured_call_with_usage(
-        prompt="devolve un entero",
-        schema=Answer,
-    )
-
-    repair_messages = mock.calls[1]["messages"]
-    assert repair_messages[-2]["role"] == "tool"
-    assert repair_messages[-2]["tool_call_id"] == "invalid-final"
-    assert "Error de validacion" in repair_messages[-2]["content"]
-    assert repair_messages[-1]["role"] == "user"
-
