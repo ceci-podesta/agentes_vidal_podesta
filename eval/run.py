@@ -44,31 +44,16 @@ DIFFICULTY_ORDER = {
     "extreme": 3,
 }
 
-# Corrida oficial para el informe M3: los 5 escenarios del criterio de
-# aprobacion (easy/medium/hard) mas extreme-archive, ya validado en
-# desarrollo. Los dos escenarios extreme restantes (vault-combination,
-# backtracking-vault) no son obligatorios y hoy no se resuelven; quedan
-# fuera para no gastar tiempo/costo de Bedrock en la corrida que se cita
-# en el informe. Usar None para evaluar el dataset completo (los 8).
+# Corrida final con los 8 escenarios del dataset completo (los fixes de
+# ventana/guarda/iteraciones apuntan justo a los tres que agotaban el tope:
+# office-sequence, vault-combination y backtracking-vault). None = dataset
+# completo; una lista de IDs para volver a acotar a un subconjunto.
 DEVELOPMENT_SCENARIOS: list[str] | None = None
-# [
-#     "study-with-key",
-#     "color-locks",
-#     "apartment-keys",
-#     "library-search",
-#     "office-sequence",
-#     "extreme-archive",
-# ]
 
 # "final" marca una corrida como evidencia oficial para el informe;
 # "development" marca corridas exploratorias/de diagnostico. Es
 # independiente del subconjunto de escenarios elegido arriba.
 RUN_KIND = "final"
-
-# La evaluacion cualitativa forma parte del mismo entrypoint reproducible.
-RUN_LLM_JUDGE = True
-JUDGE_MODEL_ID = DEFAULT_JUDGE_MODEL_ID
-JUDGE_REGION = DEFAULT_JUDGE_REGION
 
 # Repeticiones por escenario para pass@k (ENUNCIADO_M3.md lo sugiere
 # explicitamente como metrica valida). Una sola corrida no alcanza para
@@ -81,22 +66,41 @@ REPEATS_PER_SCENARIO = 5
 # Umbral de exito para considerar un escenario "resuelto" bajo pass@k.
 PASS_AT_K_THRESHOLD = 0.5
 
+# La evaluacion cualitativa (LLM-as-judge) corre sobre las trazas ya
+# generadas por esta misma corrida, sin volver a llamar al agente. Se deja
+# en False por defecto para que `python eval/run.py` no le sume a un
+# profesor que solo quiere reproducir el pass@k el costo/tiempo extra de
+# evaluar cada intento con un segundo LLM. Para correrla manualmente sobre
+# un reporte ya guardado: `python eval/llm_judge.py <report.json>`.
+RUN_LLM_JUDGE = False
+JUDGE_MODEL_ID = DEFAULT_JUDGE_MODEL_ID
+JUDGE_REGION = DEFAULT_JUDGE_REGION
+
 M3_AGENT_CONFIG = {
-    "max_iterations": 25,
-    # `_build_sliding_window` (M2) recorta por cantidad de mensajes sin
-    # saber que un turno "assistant" con tool_calls y sus mensajes "tool"
-    # correspondientes deben viajar juntos. Con max_iterations=25 una
-    # partida larga puede acercarse al default de 50 y el recorte cae en
-    # medio de un grupo assistant+tool, lo que Bedrock rechaza
-    # (ValidationException: "toolResult blocks... exceeds... toolUse
-    # blocks"). El maximo teorico aca es ~101 mensajes; 200 da margen
-    # amplio para que el recorte practicamente nunca se dispare. No es un
-    # arreglo de la causa raiz (ver Limitaciones en INFORME_M3.md), es un
-    # workaround deliberado para no tocar agent.py (ya evaluado en M2).
-    "max_history_messages": 200,
+    # Subido de 25 a 40 (Tarea 3): office-sequence, vault-combination y
+    # backtracking-vault agotaban el tope en 5/5 corridas sin errores de
+    # razonamiento, solo por presupuesto (ver INFORME_M3.md). 40 es casi el
+    # doble del optimo mas grande del dataset (21, vault-combination),
+    # margen para que un modelo chico se equivoque y corrija. Uniforme para
+    # los 8 escenarios, sin ajustar por dificultad (principio de diseño:
+    # una sola config del agente).
+    "max_iterations": 40,
+    # `_build_sliding_window` (M2) ahora recorta por bloques atomicos (un
+    # turno "assistant" con tool_calls viaja siempre con sus "tool"), asi
+    # que ya no hace falta inflar el limite para evitar la
+    # ValidationException de Bedrock ("toolResult blocks... exceeds...
+    # toolUse blocks"): con el recorte arreglado, 50 es un valor seguro.
+    # No se pasa `max_history_messages` explicitamente: se deja el default
+    # del constructor de MyAgent (`agent.py:89`).
     "max_repeated_failures": 1,
     "max_repeated_observations": 1,
     "observation_tool_names": {"look", "examine", "research_documents"},
+    # De las observation tools de arriba, estas dos pueden revelar estado
+    # nuevo (examine sobre un contenedor; research_documents delega en
+    # examine). `look` queda afuera: nunca muta el mundo, solo redescribe
+    # la sala. Un llamado exitoso a una de estas limpia failed_call_counts
+    # (ver Limitaciones en INFORME_M3.md, guarda anti-repeticion).
+    "progress_observation_tools": {"examine", "research_documents"},
     "use_m3_scratchpad": True,
     # Activado tras el experimento planner vs ReAct puro (ver INFORME_M3.md):
     # 3/3 en color-locks y 2/3 en office-sequence con planner, contra 2/5 y
@@ -519,6 +523,7 @@ def save_report(report: dict[str, Any], output_dir: Path) -> Path:
     )
     return report_path
 
+
 def run_qualitative_evaluation(
     report: dict[str, Any],
     report_path: Path,
@@ -554,7 +559,41 @@ def main() -> int:
         selected_scenario_ids = [scenario.id for scenario in selected]
 
         for scenario in selected:
-            result = run_scenario(scenario)
+            started_at = perf_counter()
+            try:
+                result = run_scenario(scenario)
+            except Exception as exc:
+                # Un intento individual no debe tirar abajo toda la
+                # corrida (p. ej. structured_call_with_usage agotando sus
+                # reintentos internos porque el modelo devolvio un Plan
+                # invalido). Se registra como no logrado, con el error
+                # explicito, y se sigue con el resto de los intentos.
+                print(
+                    f"Advertencia: {scenario.id} (intento {attempt}) fallo "
+                    f"con {type(exc).__name__}: {exc}. Se registra como no "
+                    "logrado y se continua con el resto.",
+                    file=sys.stderr,
+                )
+                result = {
+                    "scenario": scenario.id,
+                    "difficulty": scenario.difficulty,
+                    "user_message": scenario.user_message,
+                    "goal": scenario.goal,
+                    "goal_achieved": False,
+                    "goal_reason": (
+                        f"Excepcion no manejada antes de evaluar el goal: "
+                        f"{type(exc).__name__}: {exc}"
+                    ),
+                    "duration_seconds": perf_counter() - started_at,
+                    "agent_result": {
+                        "answer": "",
+                        "steps": [],
+                        "error": f"{type(exc).__name__}: {exc}",
+                        "input_tokens": None,
+                        "output_tokens": None,
+                    },
+                    "delegation": {},
+                }
             result["attempt"] = attempt
             results.append(result)
 
@@ -575,7 +614,6 @@ def main() -> int:
     print(json.dumps(report, ensure_ascii=False, indent=2))
     print(f"Reporte final guardado en: {report_path}", file=sys.stderr)
 
-    judge_report: dict[str, Any] | None = None
     if RUN_LLM_JUDGE:
         print(
             "Ejecutando evaluacion cualitativa con LLM-as-judge...",

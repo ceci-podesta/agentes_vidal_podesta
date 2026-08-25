@@ -47,6 +47,7 @@ def build_agent(config: dict[str, Any] | None = None) -> Agent:
         "max_repeated_failures",
         "max_repeated_observations",
         "observation_tool_names",
+        "progress_observation_tools",
         "use_m3_scratchpad",
         "use_m3_planner",
     ):
