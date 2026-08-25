@@ -1,0 +1,1712 @@
+{
+  "metadata": {
+    "judge_run_id": "20260825T005101334774Z",
+    "timestamp_utc": "2026-08-25T00:51:01.334774+00:00",
+    "source_run_id": "20260824T204329851795Z",
+    "judge_provider": {
+      "provider": "bedrock",
+      "model_provider": "moonshot",
+      "model": "moonshot.kimi-k2-thinking",
+      "region": "us-east-1"
+    },
+    "evaluation_dimension": "uso_del_feedback",
+    "deterministic_outcome_included_in_prompt": false,
+    "source_outcome_attached_after_judgment": true,
+    "rubric_scale": "0-2-null"
+  },
+  "summary": {
+    "execution_status": "completed_with_errors",
+    "requested_traces": 40,
+    "judged_traces": 34,
+    "failed_judgments": 6,
+    "feedback_use": {
+      "average_score": 1.5909090909090908,
+      "score_distribution": {
+        "0": 0,
+        "1": 9,
+        "2": 13
+      },
+      "evaluated_traces": 22,
+      "not_applicable": 12,
+      "feedback_episodes": 92,
+      "incorporated_episodes": 74,
+      "incorporation_rate": 0.8043478260869565
+    },
+    "judge_input_tokens": 259262,
+    "judge_output_tokens": 171989
+  },
+  "judgments": [
+    {
+      "scenario": "study-with-key",
+      "difficulty": "easy",
+      "attempt": 1,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 2
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 2,
+        "justification": "Se identificó un episodio de feedback correctivo en el paso 5 donde el agente intentó usar una llave que no tenía. El agente incorporó correctamente este feedback tomando la llave en el paso 6, que es la siguiente acción relevante.",
+        "episodes": [
+          {
+            "feedback_step": 5,
+            "feedback_evidence": "Error: no llevas ningún 'llave_oro'.",
+            "next_relevant_step": 6,
+            "next_action_evidence": "Tomas llave dorada.",
+            "incorporated": true,
+            "explanation": "El agente recibió un error indicando que no poseía la llave dorada al intentar usarla con la puerta. La acción correctiva necesaria era tomar la llave primero."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 1853,
+        "output_tokens": 1160,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "apartment-keys",
+      "difficulty": "medium",
+      "attempt": 1,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 1
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 1,
+        "justification": "El agente recibió feedback correctivo en tres ocasiones. En el primer episodio (paso 7), respondió correctamente tomando la llave. En el segundo episodio (paso 9), aunque inicialmente verificó su ubicación, el primer intento de movimiento (paso 11) fue en dirección incorrecta, por lo que no incorporó correctamente el feedback en la primera acción relevante. En el tercer episodio (paso 11), incorporó inmediatamente el feedback yendo en la dirección correcta.",
+        "episodes": [
+          {
+            "feedback_step": 7,
+            "feedback_evidence": "Error: no llevas ningún 'llave_oro'.",
+            "next_relevant_step": 8,
+            "next_action_evidence": "Tomas llave dorada.",
+            "incorporated": true,
+            "explanation": "El agente intentó usar una llave que no tenía. La siguiente acción relevante fue tomar la llave dorada, incorporando directamente el feedback."
+          },
+          {
+            "feedback_step": 9,
+            "feedback_evidence": "Error: no ves ningún 'puerta_principal' aquí.",
+            "next_relevant_step": 11,
+            "next_action_evidence": "Error: no hay salida 'este' desde aquí.",
+            "incorporated": false,
+            "explanation": "El feedback indicaba que la puerta no estaba en la cocina. Aunque el agente verificó su ubicación (paso 10), su primera acción de movimiento (paso 11) fue en dirección incorrecta (este en lugar de oeste), por lo que no incorporó el feedback en la primera acción relevante."
+          },
+          {
+            "feedback_step": 11,
+            "feedback_evidence": "Error: no hay salida 'este' desde aquí. Salidas disponibles: oeste.",
+            "next_relevant_step": 12,
+            "next_action_evidence": "Caminas hacia oeste. Llegas a Pasillo.",
+            "incorporated": true,
+            "explanation": "El feedback especificó las salidas disponibles. La siguiente acción relevante fue moverse hacia oeste, incorporando directamente la corrección."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 4899,
+        "output_tokens": 7939,
+        "attempts": 2
+      }
+    },
+    {
+      "scenario": "color-locks",
+      "difficulty": "medium",
+      "attempt": 1,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 2
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 2,
+        "justification": "Se identificó un único episodio de feedback correctivo en el paso 3, donde el sistema informa que no se posee la llave plateada. El agente incorporó inmediatamente este feedback en la siguiente acción relevante (paso 4) tomando la llave plateada, permitiendo continuar con la secuencia de acciones necesarias para alcanzar el objetivo.",
+        "episodes": [
+          {
+            "feedback_step": 3,
+            "feedback_evidence": "Error: no llevas ningún 'llave_plata'.",
+            "next_relevant_step": 4,
+            "next_action_evidence": "Tomas llave plateada.",
+            "incorporated": true,
+            "explanation": "El feedback indica que no se tiene la llave plateada en el inventario para usarla. La acción correctiva es tomarla primero."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 2754,
+        "output_tokens": 1376,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "office-sequence",
+      "difficulty": "hard",
+      "attempt": 1,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "secuencia completada en el orden correcto"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 2
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 2,
+        "justification": "La traza contiene múltiples episodios de feedback correctivo sobre direcciones inválidas y acciones redundantes. En todos los casos, el agente incorporó el feedback en la siguiente acción relevante: tras recibir errores de dirección, usó la dirección correcta indicada; tras el aviso de observación redundante, cambió a una acción diferente. La incorporación fue consistente en todos los episodios identificados.",
+        "episodes": [
+          {
+            "feedback_step": 3,
+            "feedback_evidence": "La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente.",
+            "next_relevant_step": 4,
+            "next_action_evidence": "Caminas hacia este. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente recibió feedback de que repetir 'look' sin progreso no es útil. En el paso 4 cambió a 'go este', una acción diferente que avanza en la exploración."
+          },
+          {
+            "feedback_step": 10,
+            "feedback_evidence": "no hay salida 'norte' desde aquí. Salidas disponibles: oeste.",
+            "next_relevant_step": 11,
+            "next_action_evidence": "Caminas hacia oeste. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente intentó una dirección inválida. En el paso 11 usó correctamente 'oeste', la dirección indicada como disponible."
+          },
+          {
+            "feedback_step": 18,
+            "feedback_evidence": "no hay salida 'oeste' desde aquí. Salidas disponibles: sur.",
+            "next_relevant_step": 19,
+            "next_action_evidence": "Caminas hacia sur. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente intentó una dirección inválida. En el paso 19 usó correctamente 'sur', la dirección indicada como disponible."
+          },
+          {
+            "feedback_step": 22,
+            "feedback_evidence": "no hay salida 'oeste' desde aquí. Salidas disponibles: este.",
+            "next_relevant_step": 23,
+            "next_action_evidence": "Caminas hacia este. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente intentó una dirección inválida. En el paso 23 usó correctamente 'este', la dirección indicada como disponible."
+          },
+          {
+            "feedback_step": 25,
+            "feedback_evidence": "no hay salida 'este' desde aquí. Salidas disponibles: oeste.",
+            "next_relevant_step": 26,
+            "next_action_evidence": "Caminas hacia oeste. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente intentó una dirección inválida. En el paso 26 usó correctamente 'oeste', la dirección indicada como disponible."
+          },
+          {
+            "feedback_step": 28,
+            "feedback_evidence": "no hay salida 'oeste' desde aquí. Salidas disponibles: este.",
+            "next_relevant_step": 29,
+            "next_action_evidence": "Caminas hacia este. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente intentó una dirección inválida. En el paso 29 usó correctamente 'este', la dirección indicada como disponible."
+          },
+          {
+            "feedback_step": 31,
+            "feedback_evidence": "no hay salida 'este' desde aquí. Salidas disponibles: oeste.",
+            "next_relevant_step": 32,
+            "next_action_evidence": "Caminas hacia oeste. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente intentó una dirección inválida. En el paso 32 usó correctamente 'oeste', la dirección indicada como disponible."
+          },
+          {
+            "feedback_step": 34,
+            "feedback_evidence": "no hay salida 'oeste' desde aquí. Salidas disponibles: este.",
+            "next_relevant_step": 35,
+            "next_action_evidence": "Caminas hacia este. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente intentó una dirección inválida. En el paso 35 usó correctamente 'este', la dirección indicada como disponible."
+          },
+          {
+            "feedback_step": 37,
+            "feedback_evidence": "no hay salida 'este' desde aquí. Salidas disponibles: oeste.",
+            "next_relevant_step": 38,
+            "next_action_evidence": "Caminas hacia oeste. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente intentó una dirección inválida. En el paso 38 usó correctamente 'oeste', la dirección indicada como disponible."
+          },
+          {
+            "feedback_step": 40,
+            "feedback_evidence": "no hay salida 'oeste' desde aquí. Salidas disponibles: este.",
+            "next_relevant_step": 41,
+            "next_action_evidence": "Caminas hacia este. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente intentó una dirección inválida. En el paso 41 usó correctamente 'este', la dirección indicada como disponible."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 9291,
+        "output_tokens": 5795,
+        "attempts": 2
+      }
+    },
+    {
+      "scenario": "backtracking-vault",
+      "difficulty": "extreme",
+      "attempt": 1,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 2
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 2,
+        "justification": "Se identificaron 6 episodios de feedback correctivo en la traza. En todos los casos, el agente incorporó el feedback en la siguiente acción relevante: (1) al recibir error de puerta blindada bloqueada, examinó el escritorio para encontrar la llave; (2) al no poder examinar la llave_intermedia, regresó a Sala A para tomarla; (3) al recibir error de reja bloqueada, examinó el armario para encontrar la llave correspondiente; (4) y (5) al no ver el cofre_antiguo en salas incorrectas, se movió hacia la Entrada donde se encuentra; (6) al intentar una dirección inválida, usó look para verificar el estado actual. El agente demostró consistencia en responder adecuadamente a cada feedback correctivo.",
+        "episodes": [
+          {
+            "feedback_step": 4,
+            "feedback_evidence": "Error: el paso hacia norte está bloqueado por puerta blindada. Tenés que abrirla primero.",
+            "next_relevant_step": 5,
+            "next_action_evidence": "examine escritorio",
+            "incorporated": true,
+            "explanation": "El agente recibió feedback de que la puerta blindada bloqueaba el paso. La siguiente acción relevante (paso 5) fue examinar el escritorio para encontrar la llave que abre esa puerta, incorporando el feedback."
+          },
+          {
+            "feedback_step": 8,
+            "feedback_evidence": "Error: no ves ningún 'llave_intermedia' aquí.",
+            "next_relevant_step": 9,
+            "next_action_evidence": "go norte",
+            "incorporated": true,
+            "explanation": "El agente recibió feedback de que no podía examinar un objeto que no tenía. La siguiente acción relevante (paso 9) fue moverse a Sala A donde estaba la llave, incorporando el feedback."
+          },
+          {
+            "feedback_step": 14,
+            "feedback_evidence": "Error: el paso hacia norte está bloqueado por reja. Tenés que abrirla primero.",
+            "next_relevant_step": 15,
+            "next_action_evidence": "examine armario",
+            "incorporated": true,
+            "explanation": "El agente recibió feedback de que la reja bloqueaba el paso. La siguiente acción relevante (paso 15) fue examinar el armario para encontrar la llave de la reja, incorporando el feedback."
+          },
+          {
+            "feedback_step": 23,
+            "feedback_evidence": "Error: no ves ningún 'cofre_antiguo' aquí.",
+            "next_relevant_step": 24,
+            "next_action_evidence": "go sur",
+            "incorporated": true,
+            "explanation": "El agente recibió feedback de que estaba en la sala incorrecta para usar la llave oxidada. La siguiente acción relevante (paso 24) fue moverse al sur hacia la Entrada donde está el cofre, incorporando el feedback."
+          },
+          {
+            "feedback_step": 25,
+            "feedback_evidence": "Error: no ves ningún 'cofre_antiguo' aquí.",
+            "next_relevant_step": 26,
+            "next_action_evidence": "go sur",
+            "incorporated": true,
+            "explanation": "El agente recibió feedback de que seguía en la sala incorrecta. La siguiente acción relevante (paso 26) fue continuar moviéndose al sur hacia la Entrada, incorporando el feedback."
+          },
+          {
+            "feedback_step": 31,
+            "feedback_evidence": "Error: no hay salida 'puerta_principal' desde aquí. Salidas disponibles: norte.",
+            "next_relevant_step": 32,
+            "next_action_evidence": "look",
+            "incorporated": true,
+            "explanation": "El agente recibió feedback de que la dirección 'puerta_principal' no es válida. La siguiente acción relevante (paso 32) fue usar look para verificar el estado actual y las salidas disponibles, incorporando el feedback."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 7874,
+        "output_tokens": 7130,
+        "attempts": 2
+      }
+    },
+    {
+      "scenario": "extreme-archive",
+      "difficulty": "extreme",
+      "attempt": 1,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": false,
+        "score": null
+      },
+      "judgment": {
+        "applicable": false,
+        "score": null,
+        "justification": "No se identificó ningún feedback correctivo en la traza. Todos los pasos fueron acciones exitosas (examine, take, use) sin mensajes de error, fallos, precondiciones no cumplidas, combinaciones incompatibles o correcciones concretas. El agente simplemente examinó expedientes secuencialmente hasta encontrar la llave, pero esto no constituye feedback correctivo sino una estrategia de búsqueda planificada. El campo 'error' es null en todos los pasos y no hay evidencia de feedback que requiriera incorporación.",
+        "episodes": []
+      },
+      "judge_usage": {
+        "input_tokens": 18331,
+        "output_tokens": 1333,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "vault-combination",
+      "difficulty": "extreme",
+      "attempt": 1,
+      "source_outcome": {
+        "goal_achieved": false,
+        "goal_reason": "puerta principal está cerrada"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 1
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 1,
+        "justification": "El agente incorporó correctamente el feedback en los primeros 4 episodios, ajustando sus acciones para tomar la llave del depósito y usarla en la puerta correcta. Sin embargo, en el episodio 5, cuando recibe el feedback de que no puede ver la puerta principal desde la galería central, no incorpora esta corrección y nunca vuelve al vestíbulo. En su lugar, entra en un bucle repetitivo entre la galería central y el taller.",
+        "episodes": [
+          {
+            "feedback_step": 10,
+            "feedback_evidence": "Error: no llevas ningún 'llave_deposito'.",
+            "next_relevant_step": 11,
+            "next_action_evidence": "take llave_deposito",
+            "incorporated": true,
+            "explanation": "El agente intentó usar la llave del depósito sin tenerla. Inmediatamente después, en el paso 11, intenta tomar la llave."
+          },
+          {
+            "feedback_step": 11,
+            "feedback_evidence": "Error: 'llave_deposito' no es visible o accesible desde aquí.",
+            "next_relevant_step": 14,
+            "next_action_evidence": "examine banco_herramientas",
+            "incorporated": true,
+            "explanation": "El agente intentó tomar la llave desde la galería central, pero no estaba accesible. Luego volvió al taller (pasos 13-14) donde estaba el banco de herramientas."
+          },
+          {
+            "feedback_step": 15,
+            "feedback_evidence": "Error: no llevas ningún 'llave_deposito'.",
+            "next_relevant_step": 16,
+            "next_action_evidence": "take llave_deposito",
+            "incorporated": true,
+            "explanation": "El agente intentó usar la llave del depósito nuevamente sin haberla tomado. Inmediatamente después, en el paso 16, toma la llave."
+          },
+          {
+            "feedback_step": 17,
+            "feedback_evidence": "Error: no ves ningún 'puerta_deposito' aquí.",
+            "next_relevant_step": 19,
+            "next_action_evidence": "go oeste",
+            "incorporated": true,
+            "explanation": "El agente intentó usar la llave del depósito estando en el taller, donde no ve la puerta. Luego se movió a la galería central (paso 19) donde está la puerta."
+          },
+          {
+            "feedback_step": 20,
+            "feedback_evidence": "Error: no ves ningún 'puerta_principal' aquí.",
+            "next_relevant_step": null,
+            "next_action_evidence": null,
+            "incorporated": false,
+            "explanation": "El agente intentó usar el núcleo rojo en la puerta principal desde la galería central, pero no puede verla. La acción relevante sería volver al vestíbulo (sur), pero el agente nunca lo hace. En su lugar, entra en un bucle entre galería central y taller."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 4774,
+        "output_tokens": 3913,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "study-with-key",
+      "difficulty": "easy",
+      "attempt": 2,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 2
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 2,
+        "justification": "Se identificó un único episodio de feedback correctivo en el paso 4, donde el agente recibió un error al intentar usar un item que no poseía. El agente incorporó este feedback de manera inmediata y relevante en el paso siguiente (paso 5) tomando el item necesario. Como el único episodio fue incorporado correctamente, el puntaje es 2.",
+        "episodes": [
+          {
+            "feedback_step": 4,
+            "feedback_evidence": "Error: no llevas ningún 'llave_oro'.",
+            "next_relevant_step": 5,
+            "next_action_evidence": "Tomas llave dorada.",
+            "incorporated": true,
+            "explanation": "El agente intentó usar la llave dorada sin tenerla en el inventario. El mensaje de error indicó que necesitaba tomarla primero. La siguiente acción fue tomar la llave, lo cual incorpora directamente el feedback."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 1572,
+        "output_tokens": 1597,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "apartment-keys",
+      "difficulty": "medium",
+      "attempt": 2,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 1
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 1,
+        "justification": "La traza contiene 3 episodios de feedback correctivo. En el episodio 1 (paso 9), el agente recibe que no ve la puerta, pero su primera acción de movimiento (paso 11) es en dirección incorrecta. En el episodio 2 (paso 10), el agente recibe que debe hacer una acción diferente y cumple cambiando a 'go norte'. En el episodio 3 (paso 11), recibe la salida correcta 'oeste' y la usa inmediatamente. Dos episodios incorporados y uno no, resultando en puntaje parcial.",
+        "episodes": [
+          {
+            "feedback_step": 9,
+            "feedback_evidence": "Error: no ves ningún 'puerta_principal' aquí.",
+            "next_relevant_step": 11,
+            "next_action_evidence": "go norte (dirección incorrecta)",
+            "incorporated": false,
+            "explanation": "El feedback indica que la puerta no está visible en la cocina. La primera acción relevante para corregir esto es moverse (paso 11), pero el agente elige 'norte' que no es la dirección correcta hacia el recibidor. Aunque eventualmente se corrige en el paso 12, la primera acción relevante no incorporó el feedback."
+          },
+          {
+            "feedback_step": 10,
+            "feedback_evidence": "Error: La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente.",
+            "next_relevant_step": 11,
+            "next_action_evidence": "go norte",
+            "incorporated": true,
+            "explanation": "El feedback sugiere realizar una acción diferente a look. El agente cambia a 'go norte' en el paso siguiente, una acción distinta que cumple con la sugerencia."
+          },
+          {
+            "feedback_step": 11,
+            "feedback_evidence": "Error: no hay salida 'norte' desde aquí. Salidas disponibles: oeste.",
+            "next_relevant_step": 12,
+            "next_action_evidence": "go oeste",
+            "incorporated": true,
+            "explanation": "El feedback especifica que la única salida disponible es 'oeste'. El agente inmediatamente usa 'go oeste' en el siguiente paso, incorporando directamente la corrección."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 2488,
+        "output_tokens": 3189,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "color-locks",
+      "difficulty": "medium",
+      "attempt": 2,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": false,
+        "score": null
+      },
+      "judgment": {
+        "applicable": false,
+        "score": null,
+        "justification": "No se identificó ningún feedback correctivo en la traza. Todas las respuestas de las herramientas fueron descripciones neutrales del mundo o confirmaciones de acciones exitosas. No hubo mensajes que indicaran fallos, precondiciones no cumplidas, combinaciones incompatibles o correcciones concretas que requirieran cambiar decisiones posteriores.",
+        "episodes": []
+      },
+      "judge_usage": {
+        "input_tokens": 2925,
+        "output_tokens": 1005,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "library-search",
+      "difficulty": "hard",
+      "attempt": 2,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": false,
+        "score": null
+      },
+      "judgment": {
+        "applicable": false,
+        "score": null,
+        "justification": "No se detectó ningún feedback correctivo en la traza. Todas las acciones del agente fueron exitosas en su primera ejecución y las respuestas de las herramientas consisten únicamente en descripciones neutrales del mundo o confirmaciones de éxito, sin mensajes de error, fallos, precondiciones no cumplidas, combinaciones incompatibles o correcciones concretas que deban modificar decisiones posteriores.",
+        "episodes": []
+      },
+      "judge_usage": {
+        "input_tokens": 2466,
+        "output_tokens": 785,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "backtracking-vault",
+      "difficulty": "extreme",
+      "attempt": 2,
+      "source_outcome": {
+        "goal_achieved": false,
+        "goal_reason": "puerta principal está cerrada"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 1
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 1,
+        "justification": "El agente solo incorporó el feedback correctivo en el primer episodio (paso 5→6), intentando abrir la puerta blindada tras recibir la advertencia. Sin embargo, falló en incorporar todos los feedbacks posteriores, entrando en un bucle de repetición de acciones fallidas (look, use, go norte) a pesar de recibir múltiples advertencias de 'elegí una acción diferente'.",
+        "episodes": [
+          {
+            "feedback_step": 5,
+            "feedback_evidence": "Error: el paso hacia norte está bloqueado por puerta blindada. Tenés que abrirla primero.",
+            "next_relevant_step": 6,
+            "next_action_evidence": "use llave_intermedia on puerta_blindada",
+            "incorporated": true,
+            "explanation": "El agente recibió feedback de que debe abrir la puerta blindada antes de avanzar. En el paso 6 intentó usar la llave_intermedia en la puerta_blindada, lo cual es consistente con la corrección."
+          },
+          {
+            "feedback_step": 6,
+            "feedback_evidence": "Error: no llevas ningún 'llave_intermedia'.",
+            "next_relevant_step": 7,
+            "next_action_evidence": "look",
+            "incorporated": false,
+            "explanation": "El feedback indica que el agente no tiene la llave. La acción relevante siguiente debería haber sido tomar la llave del escritorio, pero en el paso 7 solo hizo 'look' sin abordar el problema."
+          },
+          {
+            "feedback_step": 7,
+            "feedback_evidence": "Error: La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente.",
+            "next_relevant_step": 8,
+            "next_action_evidence": "use llave_intermedia on puerta_blindada",
+            "incorporated": false,
+            "explanation": "El feedback advierte contra repetir observaciones sin progreso. Sin embargo, el agente repitió la acción 'use llave_intermedia on puerta_blindada' en el paso 8, que ya había fallado en el paso 6."
+          },
+          {
+            "feedback_step": 8,
+            "feedback_evidence": "Error: La llamada ya falló sin que hubiera progreso. Elegí una acción diferente.",
+            "next_relevant_step": 9,
+            "next_action_evidence": "go norte",
+            "incorporated": false,
+            "explanation": "El feedback indica que debe elegir una acción diferente. A pesar de esto, en el paso 9 repitió 'go norte', que ya había fallado en el paso 5."
+          },
+          {
+            "feedback_step": 9,
+            "feedback_evidence": "Error: La llamada ya falló sin que hubiera progreso. Elegí una acción diferente.",
+            "next_relevant_step": 10,
+            "next_action_evidence": "look",
+            "incorporated": false,
+            "explanation": "El feedback nuevamente advierte contra repetir acciones fallidas. El agente ignoró esto y repitió 'look' en el paso 10, que ya había fallado en el paso 7."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 9548,
+        "output_tokens": 6353,
+        "attempts": 2
+      }
+    },
+    {
+      "scenario": "extreme-archive",
+      "difficulty": "extreme",
+      "attempt": 2,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": false,
+        "score": null
+      },
+      "judgment": {
+        "applicable": false,
+        "score": null,
+        "justification": "No se identifica ningún episodio de feedback correctivo en la traza. Todos los outputs de las herramientas son descripciones neutrales del mundo (contenidos de expedientes administrativos) o acciones exitosas (tomar la llave, abrir la puerta). No hay mensajes que indiquen fallo de acción, precondiciones no cumplidas, combinaciones incompatibles o correcciones concretas que deban modificar decisiones posteriores. El agente simplemente examina expedientes secuencialmente hasta encontrar la llave sin recibir ningún tipo de feedback correctivo.",
+        "episodes": []
+      },
+      "judge_usage": {
+        "input_tokens": 18347,
+        "output_tokens": 1028,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "vault-combination",
+      "difficulty": "extreme",
+      "attempt": 2,
+      "source_outcome": {
+        "goal_achieved": false,
+        "goal_reason": "puerta principal está cerrada"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 1
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 1,
+        "justification": "El agente recibió 10 episodios de feedback correctivo a lo largo de la traza. Incorporó el feedback en 6 ocasiones (pasos 8→9, 10→11, 18→19, 25→26, 31→32, 37→38) pero falló en incorporarlo en 4 ocasiones (pasos 15→16, 16→17, 17→18, 30→31). Como hubo episodios tanto incorporados como no incorporados, el puntaje es parcial.",
+        "episodes": [
+          {
+            "feedback_step": 8,
+            "feedback_evidence": "Error: no hay salida 'sur' desde aquí. Salidas disponibles: oeste.",
+            "next_relevant_step": 9,
+            "next_action_evidence": "Caminas hacia oeste. Llegas a Galería central.",
+            "incorporated": true,
+            "explanation": "El agente corrigió la dirección inválida yendo hacia oeste en el paso siguiente."
+          },
+          {
+            "feedback_step": 10,
+            "feedback_evidence": "Error: no ves ningún 'puerta_principal' aquí.",
+            "next_relevant_step": 11,
+            "next_action_evidence": "Estás en Galería central.\nUna galería que distribuye hacia varias salas: el taller al este, la biblioteca al oeste y, al norte, una puerta metálica de depósito que está cerrada.",
+            "incorporated": true,
+            "explanation": "El agente reconoció que no estaba en la ubicación correcta y usó 'look' para orientarse."
+          },
+          {
+            "feedback_step": 15,
+            "feedback_evidence": "Error: La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente.",
+            "next_relevant_step": null,
+            "next_action_evidence": null,
+            "incorporated": false,
+            "explanation": "El agente ignoró el feedback y realizó una acción inválida (intentar usar una llave que no tenía) en lugar de moverse a una ubicación donde pudiera obtenerla."
+          },
+          {
+            "feedback_step": 16,
+            "feedback_evidence": "Error: no llevas ningún 'llave_deposito'.",
+            "next_relevant_step": null,
+            "next_action_evidence": null,
+            "incorporated": false,
+            "explanation": "El agente no incorporó la corrección sobre su inventario e intentó examinar un objeto inexistente en su ubicación actual."
+          },
+          {
+            "feedback_step": 17,
+            "feedback_evidence": "Error: no ves ningún 'banco_herramientas' aquí.",
+            "next_relevant_step": null,
+            "next_action_evidence": null,
+            "incorporated": false,
+            "explanation": "El agente persistió en intentar interactuar con objetos no presentes en lugar de moverse a la ubicación correcta."
+          },
+          {
+            "feedback_step": 18,
+            "feedback_evidence": "Error: La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente.",
+            "next_relevant_step": 19,
+            "next_action_evidence": "Caminas hacia este. Llegas a Galería central.",
+            "incorporated": true,
+            "explanation": "Finalmente el agente cambió de estrategia y se movió hacia el este para regresar al taller."
+          },
+          {
+            "feedback_step": 25,
+            "feedback_evidence": "Intentas usar llave del depósito con vitrina, pero no encaja.",
+            "next_relevant_step": 26,
+            "next_action_evidence": "vitrina: Una vitrina de cristal cerrada con llave. Dentro se ve un núcleo azul.",
+            "incorporated": true,
+            "explanation": "El agente reconoció la incompatibilidad y examinó la vitrina para entender qué llave necesitaba."
+          },
+          {
+            "feedback_step": 30,
+            "feedback_evidence": "Error: el paso hacia norte está bloqueado por puerta del depósito. Tenés que abrirla primero.",
+            "next_relevant_step": null,
+            "next_action_evidence": null,
+            "incorporated": false,
+            "explanation": "El agente ignoró la instrucción de abrir la puerta primero y repitió una acción de observación sin utilidad."
+          },
+          {
+            "feedback_step": 31,
+            "feedback_evidence": "Error: La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente.",
+            "next_relevant_step": 32,
+            "next_action_evidence": "Usas llave del depósito con puerta del depósito. Se abre.",
+            "incorporated": true,
+            "explanation": "El agente finalmente usó la llave del depósito para abrir la puerta bloqueante."
+          },
+          {
+            "feedback_step": 37,
+            "feedback_evidence": "Error: no hay salida 'oeste' desde aquí. Salidas disponibles: sur.",
+            "next_relevant_step": 38,
+            "next_action_evidence": "Caminas hacia sur. Llegas a Galería central.",
+            "incorporated": true,
+            "explanation": "El agente corrigió la dirección inválida yendo hacia sur en el paso siguiente."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 9154,
+        "output_tokens": 7695,
+        "attempts": 2
+      }
+    },
+    {
+      "scenario": "study-with-key",
+      "difficulty": "easy",
+      "attempt": 3,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": false,
+        "score": null
+      },
+      "judgment": {
+        "applicable": false,
+        "score": null,
+        "justification": "En la traza analizada no se identifica ningún episodio de feedback correctivo. Todos los outputs de las herramientas corresponden a descripciones neutrales del mundo (look, examine) o confirmaciones de acciones exitosas (take, use). No existe ninguna respuesta que informe de un fallo, una precondición no cumplida, una combinación incompatible o una corrección concreta que deba modificar una decisión posterior.",
+        "episodes": []
+      },
+      "judge_usage": {
+        "input_tokens": 1580,
+        "output_tokens": 926,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "apartment-keys",
+      "difficulty": "medium",
+      "attempt": 3,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 2
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 2,
+        "justification": "El agente recibe feedback correctivo en el paso 9 al intentar usar la llave dorada en el Pasillo: 'no ves ningún 'puerta_principal' aquí'. Este error indica que la puerta no está en la ubicación actual. En la siguiente acción relevante (paso 10), el agente se mueve al sur hacia el Recibidor, que es donde originalmente vio la puerta principal. Esta acción incorpora directamente el feedback al desplazarse a la ubicación correcta antes de volver a intentar usar la llave (paso 11).",
+        "episodes": [
+          {
+            "feedback_step": 9,
+            "feedback_evidence": "Error: no ves ningún 'puerta_principal' aquí.",
+            "next_relevant_step": 10,
+            "next_action_evidence": "Caminas hacia sur. Llegas a Recibidor.",
+            "incorporated": true,
+            "explanation": "El feedback indica que la puerta principal no está visible en la ubicación actual (Pasillo). El agente incorpora esta corrección moviéndose al Recibidor (paso 10), donde la puerta está presente, antes de reintentar usar la llave."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 1997,
+        "output_tokens": 1012,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "color-locks",
+      "difficulty": "medium",
+      "attempt": 3,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 2
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 2,
+        "justification": "Se identificó un único episodio de feedback correctivo en el paso 2, donde el agente intentó usar una llave plateada que no tenía en su inventario. El agente incorporó inmediatamente este feedback en la siguiente acción relevante (paso 3) tomando la llave plateada antes de volver a intentar usarla (paso 4). No hubo otros episodios de feedback correctivo en la traza.",
+        "episodes": [
+          {
+            "feedback_step": 2,
+            "feedback_evidence": "Error: no llevas ningún 'llave_plata'.",
+            "next_relevant_step": 3,
+            "next_action_evidence": "Tomas llave plateada.",
+            "incorporated": true,
+            "explanation": "El agente recibió feedback de que no poseía la llave plateada. La siguiente acción relevante (paso 3) fue tomar esa llave, incorporando directamente la corrección."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 2320,
+        "output_tokens": 1159,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "library-search",
+      "difficulty": "hard",
+      "attempt": 3,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": false,
+        "score": null
+      },
+      "judgment": {
+        "applicable": false,
+        "score": null,
+        "justification": "En toda la traza no se identifica ningún feedback correctivo. Todas las acciones del agente son exitosas desde el principio: el examine del escritorio revela que está vacío (descripción neutral), el examine de la caja fuerte indica que está cerrada con llave (estado del mundo, no corrección), y cada tool use (take y use) devuelve éxito inmediato sin mensajes de error, fallo o corrección. El agente explora sistemáticamente los libros, encuentra la llave_caja en el libro de sermones, la usa correctamente para abrir la caja fuerte, obtiene la llave_grabada y la usa para abrir la puerta principal, todo sin recibir ninguna respuesta correctiva de las tools.",
+        "episodes": []
+      },
+      "judge_usage": {
+        "input_tokens": 5363,
+        "output_tokens": 1213,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "office-sequence",
+      "difficulty": "hard",
+      "attempt": 3,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "secuencia completada en el orden correcto"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 1
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 1,
+        "justification": "La traza contiene múltiples instancias de feedback correctivo cuando el agente intenta moverse en direcciones no disponibles. En 9 de los 10 episodios identificados, el agente incorpora inmediatamente la corrección en la siguiente acción relevante. El último episodio (paso 41) no tiene acción posterior relevante, por lo que se marca como no incorporado.",
+        "episodes": [
+          {
+            "feedback_step": 8,
+            "feedback_evidence": "Error: no hay salida 'norte' desde aquí. Salidas disponibles: oeste.",
+            "next_relevant_step": 9,
+            "next_action_evidence": "Caminas hacia oeste. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente recibió corrección sobre dirección no disponible y en el paso siguiente (9) usó la dirección correcta 'oeste'."
+          },
+          {
+            "feedback_step": 16,
+            "feedback_evidence": "Error: no hay salida 'oeste' desde aquí. Salidas disponibles: sur.",
+            "next_relevant_step": 17,
+            "next_action_evidence": "Caminas hacia sur. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente recibió corrección sobre dirección no disponible y en el paso siguiente (17) usó la dirección correcta 'sur'."
+          },
+          {
+            "feedback_step": 20,
+            "feedback_evidence": "Error: no hay salida 'oeste' desde aquí. Salidas disponibles: este.",
+            "next_relevant_step": 21,
+            "next_action_evidence": "Caminas hacia este. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente recibió corrección sobre dirección no disponible y en el paso siguiente (21) usó la dirección correcta 'este'."
+          },
+          {
+            "feedback_step": 23,
+            "feedback_evidence": "Error: no hay salida 'este' desde aquí. Salidas disponibles: oeste.",
+            "next_relevant_step": 24,
+            "next_action_evidence": "Caminas hacia oeste. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente recibió corrección sobre dirección no disponible y en el paso siguiente (24) usó la dirección correcta 'oeste'."
+          },
+          {
+            "feedback_step": 26,
+            "feedback_evidence": "Error: no hay salida 'oeste' desde aquí. Salidas disponibles: este.",
+            "next_relevant_step": 27,
+            "next_action_evidence": "Caminas hacia este. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente recibió corrección sobre dirección no disponible y en el paso siguiente (27) usó la dirección correcta 'este'."
+          },
+          {
+            "feedback_step": 29,
+            "feedback_evidence": "Error: no hay salida 'este' desde aquí. Salidas disponibles: oeste.",
+            "next_relevant_step": 30,
+            "next_action_evidence": "Caminas hacia oeste. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente recibió corrección sobre dirección no disponible y en el paso siguiente (30) usó la dirección correcta 'oeste'."
+          },
+          {
+            "feedback_step": 32,
+            "feedback_evidence": "Error: no hay salida 'oeste' desde aquí. Salidas disponibles: este.",
+            "next_relevant_step": 33,
+            "next_action_evidence": "Caminas hacia este. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente recibió corrección sobre dirección no disponible y en el paso siguiente (33) usó la dirección correcta 'este'."
+          },
+          {
+            "feedback_step": 35,
+            "feedback_evidence": "Error: no hay salida 'este' desde aquí. Salidas disponibles: oeste.",
+            "next_relevant_step": 36,
+            "next_action_evidence": "Caminas hacia oeste. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente recibió corrección sobre dirección no disponible y en el paso siguiente (36) usó la dirección correcta 'oeste'."
+          },
+          {
+            "feedback_step": 38,
+            "feedback_evidence": "Error: no hay salida 'oeste' desde aquí. Salidas disponibles: este.",
+            "next_relevant_step": 39,
+            "next_action_evidence": "Caminas hacia este. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente recibió corrección sobre dirección no disponible y en el paso siguiente (39) usó la dirección correcta 'este'."
+          },
+          {
+            "feedback_step": 41,
+            "feedback_evidence": "Error: no hay salida 'este' desde aquí. Salidas disponibles: oeste.",
+            "next_relevant_step": null,
+            "next_action_evidence": null,
+            "incorporated": false,
+            "explanation": "No hubo acción posterior relevante porque la traza finaliza en este paso."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 3993,
+        "output_tokens": 3305,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "backtracking-vault",
+      "difficulty": "extreme",
+      "attempt": 3,
+      "source_outcome": {
+        "goal_achieved": false,
+        "goal_reason": "puerta principal está cerrada"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 1
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 1,
+        "justification": "La traza contiene múltiples instancias de feedback correctivo. El agente recibió feedback sobre: (1) necesidad de abrir la puerta blindada antes de avanzar, (2) no llevar la llave intermedia, (3) necesidad de abrir la reja, (4) no llevar la llave oxidada, y (5) usar un ID de objeto inexistente ('cofre'). En los episodios 2, 3 y 4, el agente incorporó correctamente el feedback en la siguiente acción relevante (tomar la llave tras el error de no llevarla, y abrir la reja tras el error de bloqueo). Sin embargo, en los episodios 1 y 5, el agente no incorporó el feedback: repitió múltiples veces 'go norte' sin abrir la puerta blindada ignorando el mensaje de error, y repitió el uso del ID incorrecto 'cofre' sin corregirlo. Por tanto, el uso del feedback es parcial.",
+        "episodes": [
+          {
+            "feedback_step": 4,
+            "feedback_evidence": "Error: el paso hacia norte está bloqueado por puerta blindada. Tenés que abrirla primero.",
+            "next_relevant_step": 8,
+            "next_action_evidence": "examine puerta_blindada",
+            "incorporated": false,
+            "explanation": "El agente recibió feedback claro de que debía abrir la puerta blindada antes de avanzar, pero repitió la acción 'go norte' en los pasos 7, 9 y 11 sin intentar abrirla. La primera acción relevante (examinar o usar llave) solo ocurrió después de múltiples intentos fallidos."
+          },
+          {
+            "feedback_step": 13,
+            "feedback_evidence": "Error: no llevas ningún 'llave_intermedia'.",
+            "next_relevant_step": 14,
+            "next_action_evidence": "take llave_intermedia",
+            "incorporated": true,
+            "explanation": "Tras recibir feedback de que no llevaba la llave, el agente inmediatamente tomó la llave intermedia en el paso siguiente."
+          },
+          {
+            "feedback_step": 18,
+            "feedback_evidence": "Error: el paso hacia norte está bloqueado por reja. Tenés que abrirla primero.",
+            "next_relevant_step": 22,
+            "next_action_evidence": "use llave_boveda con reja",
+            "incorporated": true,
+            "explanation": "El agente buscó la forma de abrir la reja (examinó el armario, tomó la llave) y la abrió antes de intentar avanzar de nuevo."
+          },
+          {
+            "feedback_step": 28,
+            "feedback_evidence": "Error: no llevas ningún 'llave_oxidada'.",
+            "next_relevant_step": 35,
+            "next_action_evidence": "take llave_oxidada",
+            "incorporated": true,
+            "explanation": "El agente comprendió que necesitaba obtener la llave oxidada y, tras moverse a la ubicación correcta (Bóveda interior), la tomó."
+          },
+          {
+            "feedback_step": 37,
+            "feedback_evidence": "Error: no existe ningún objeto con id 'cofre'.",
+            "next_relevant_step": 39,
+            "next_action_evidence": "use llave_oxidada con cofre",
+            "incorporated": false,
+            "explanation": "El agente recibió feedback de que 'cofre' no es un ID válido, pero repitió el mismo error en el paso 39 usando nuevamente 'cofre' en lugar de buscar el ID correcto."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 4534,
+        "output_tokens": 3374,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "extreme-archive",
+      "difficulty": "extreme",
+      "attempt": 3,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": false,
+        "score": null
+      },
+      "judgment": {
+        "applicable": false,
+        "score": null,
+        "justification": "La traza no contiene feedback correctivo. Los worker_errors en el paso 3 son advertencias internas del sistema sobre inconsistencias en el reporte del worker, pero no constituyen feedback correctivo que requiera que el agente cambie su comportamiento o corrija una acción. El agente recibió información válida sobre la ubicación de la llave y actuó correctamente sobre ella sin necesidad de incorporar correcciones.",
+        "episodes": []
+      },
+      "judge_usage": {
+        "input_tokens": 3672,
+        "output_tokens": 3267,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "study-with-key",
+      "difficulty": "easy",
+      "attempt": 4,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 2
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 2,
+        "justification": "Se identificó un episodio de feedback correctivo en el paso 3, donde el agente intentó usar una llave que no tenía en su inventario. El error 'no llevas ningún llave_oro' es claramente feedback correctivo. La siguiente acción relevante (paso 4) fue tomar la llave, lo cual incorpora directamente la corrección recibida.",
+        "episodes": [
+          {
+            "feedback_step": 3,
+            "feedback_evidence": "Error: no llevas ningún 'llave_oro'.",
+            "next_relevant_step": 4,
+            "next_action_evidence": "Tomas llave dorada.",
+            "incorporated": true,
+            "explanation": "El agente recibió feedback de que no poseía la llave e inmediatamente tomó la acción de recogerla antes de volver a intentar usarla."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 1667,
+        "output_tokens": 834,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "apartment-keys",
+      "difficulty": "medium",
+      "attempt": 4,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 2
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 2,
+        "justification": "El agente recibió feedback correctivo en el paso 9 al intentar usar la llave dorada en una ubicación donde no estaba visible la puerta principal. El agente incorporó este feedback moviéndose al Recibidor (paso 10) y volviendo a intentar la acción en la ubicación correcta (paso 11), donde tuvo éxito.",
+        "episodes": [
+          {
+            "feedback_step": 9,
+            "feedback_evidence": "Error: no ves ningún 'puerta_principal' aquí.",
+            "next_relevant_step": 11,
+            "next_action_evidence": "Usas llave dorada con puerta principal. Se abre.",
+            "incorporated": true,
+            "explanation": "El agente corrigió el error moviéndose al Recibidor antes de volver a intentar usar la llave."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 1986,
+        "output_tokens": 1160,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "color-locks",
+      "difficulty": "medium",
+      "attempt": 4,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 2
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 2,
+        "justification": "Se identificó un único episodio de feedback correctivo en el paso 12, donde el agente recibe información explícita de que la llave plateada no encaja en la puerta principal. Este feedback es claramente correctivo porque indica fallo e incompatibilidad. En la siguiente acción relevante (paso 13), el agente incorpora este feedback al cambiar de estrategia: en lugar de insistir con la llave plateada, utiliza la llave dorada recién obtenida, logrando abrir la puerta exitosamente. Como el único episodio de feedback fue incorporado correctamente, el puntaje es 2.",
+        "episodes": [
+          {
+            "feedback_step": 12,
+            "feedback_evidence": "Intentas usar llave plateada con puerta principal, pero no encaja.",
+            "next_relevant_step": 13,
+            "next_action_evidence": "Usas llave dorada con puerta principal. Se abre.",
+            "incorporated": true,
+            "explanation": "El agente recibe feedback de que la llave plateada no funciona con la puerta principal. En la siguiente acción relevante (paso 13), cambia de estrategia y usa la llave dorada, que resulta exitosa."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 2260,
+        "output_tokens": 1385,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "library-search",
+      "difficulty": "hard",
+      "attempt": 4,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": false,
+        "score": null
+      },
+      "judgment": {
+        "applicable": false,
+        "score": null,
+        "justification": "No se identificó ningún episodio de feedback correctivo en la traza. Todas las tool outputs corresponden a descripciones neutrales del mundo o resultados exitosos de acciones, sin indicaciones de fallos, precondiciones no cumplidas, combinaciones incompatibles o correcciones concretas que deban modificar decisiones posteriores. El agente examina objetos y recibe información descriptiva, pero en ningún momento una tool responde con un error o corrección que requiera ser incorporado en una acción posterior relevante.",
+        "episodes": []
+      },
+      "judge_usage": {
+        "input_tokens": 10604,
+        "output_tokens": 5432,
+        "attempts": 2
+      }
+    },
+    {
+      "scenario": "office-sequence",
+      "difficulty": "hard",
+      "attempt": 4,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "secuencia completada en el orden correcto"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 2
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 2,
+        "justification": "Se identificaron 5 episodios de feedback correctivo en la traza. En todos los casos, el agente incorporó la corrección en la siguiente acción relevante: (1) tras el error de dirección 'norte' usó la salida correcta 'oeste', (2) tras el error de 'ya llevas la llave' dejó de intentar tomarla y pasó a otra acción, (3) tras el error de visibilidad de la llave maestra examinó el contenedor, (4) tras el error de no ver la puerta principal se movió a la ubicación correcta, y (5) tras el error de dirección inválida 'puerta_principal' usó la salida disponible 'este'.",
+        "episodes": [
+          {
+            "feedback_step": 9,
+            "feedback_evidence": "Error: no hay salida 'norte' desde aquí. Salidas disponibles: oeste.",
+            "next_relevant_step": 10,
+            "next_action_evidence": "Caminas hacia oeste. Llegas a Corredor.",
+            "incorporated": true,
+            "explanation": "El agente intentó ir al norte desde Depósito, recibió error indicando que solo hay salida oeste, y en el paso 10 usó la salida oeste."
+          },
+          {
+            "feedback_step": 15,
+            "feedback_evidence": "Error: ya llevas llave de la caja fuerte.",
+            "next_relevant_step": 16,
+            "next_action_evidence": "take llave_maestra",
+            "incorporated": true,
+            "explanation": "El agente intentó tomar una llave que ya tenía, recibió error, y en el paso 16 no repitió ese intento sino que pasó a otra acción (intentar tomar la llave maestra)."
+          },
+          {
+            "feedback_step": 16,
+            "feedback_evidence": "Error: 'llave_maestra' no es visible o accesible desde aquí.",
+            "next_relevant_step": 17,
+            "next_action_evidence": "examine caja_fuerte",
+            "incorporated": true,
+            "explanation": "El agente intentó tomar la llave maestra sin verla, recibió error, y en el paso 17 examinó la caja fuerte para ver su contenido."
+          },
+          {
+            "feedback_step": 20,
+            "feedback_evidence": "Error: no ves ningún 'puerta_principal' aquí.",
+            "next_relevant_step": 21,
+            "next_action_evidence": "go sur",
+            "incorporated": true,
+            "explanation": "El agente intentó usar la llave en la puerta principal estando en el Archivo, recibió error, y en el paso 21 se movió al Corredor para acercarse a la Oficina principal."
+          },
+          {
+            "feedback_step": 24,
+            "feedback_evidence": "Error: no hay salida 'puerta_principal' desde aquí. Salidas disponibles: este.",
+            "next_relevant_step": 25,
+            "next_action_evidence": "go este",
+            "incorporated": true,
+            "explanation": "El agente intentó usar 'puerta_principal' como dirección de salida, recibió error indicando que solo hay salida este, y en el paso 25 usó la salida este."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 3996,
+        "output_tokens": 3294,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "backtracking-vault",
+      "difficulty": "extreme",
+      "attempt": 4,
+      "source_outcome": {
+        "goal_achieved": false,
+        "goal_reason": "puerta principal está cerrada"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 1
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 1,
+        "justification": "El agente recibe múltiples mensajes de feedback correctivo sobre dos tipos de errores: 1) necesidad de abrir la puerta blindada antes de pasar, y 2) repetición de acciones sin progreso. Inicialmente incorpora el feedback (pasos 5→6, 7→8, 9→10, 11→12, 16→17), pero a partir del paso 15 cae en un bucle infinito donde alterna entre examinar la puerta blindada, examinar la llave e intentar ir al norte, sin intentar la acción correcta: usar la llave intermedia para abrir la puerta. La mayoría de los episodios después del paso 14 no son incorporados.",
+        "episodes": [
+          {
+            "feedback_step": 5,
+            "feedback_evidence": "Error: el paso hacia norte está bloqueado por puerta blindada. Tenés que abrirla primero.",
+            "next_relevant_step": 6,
+            "next_action_evidence": "examine puerta_blindada",
+            "incorporated": true,
+            "explanation": "El agente incorpora el feedback examinando la puerta blindada en el paso 6."
+          },
+          {
+            "feedback_step": 7,
+            "feedback_evidence": "Error: La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente.",
+            "next_relevant_step": 8,
+            "next_action_evidence": "go sur",
+            "incorporated": true,
+            "explanation": "El agente cambia de acción yendo al sur en el paso 8."
+          },
+          {
+            "feedback_step": 9,
+            "feedback_evidence": "Error: no ves ningún 'escritorio' aquí.",
+            "next_relevant_step": 10,
+            "next_action_evidence": "go norte",
+            "incorporated": true,
+            "explanation": "El agente reconoce el error de ubicación y regresa al norte en el paso 10."
+          },
+          {
+            "feedback_step": 11,
+            "feedback_evidence": "Error: el paso hacia norte está bloqueado por puerta blindada. Tenés que abrirla primero.",
+            "next_relevant_step": 12,
+            "next_action_evidence": "examine puerta_blindada",
+            "incorporated": true,
+            "explanation": "El agente examina la puerta blindada en el paso 12."
+          },
+          {
+            "feedback_step": 14,
+            "feedback_evidence": "Error: el paso hacia norte está bloqueado por puerta blindada. Tenés que abrirla primero.",
+            "next_relevant_step": 15,
+            "next_action_evidence": "examine puerta_blindada",
+            "incorporated": false,
+            "explanation": "El agente intenta examinar la puerta blindada nuevamente (paso 15) en lugar de intentar abrirla con la llave."
+          },
+          {
+            "feedback_step": 15,
+            "feedback_evidence": "Error: La observación ya fue realizada sin que hubiera progreso. Elegí una acción diferente.",
+            "next_relevant_step": 16,
+            "next_action_evidence": "go norte",
+            "incorporated": false,
+            "explanation": "El agente repite la acción fallida de ir al norte (paso 16) en lugar de intentar usar la llave."
+          },
+          {
+            "feedback_step": 16,
+            "feedback_evidence": "Error: La llamada ya falló sin que hubiera progreso. Elegí una acción diferente.",
+            "next_relevant_step": 17,
+            "next_action_evidence": "examine llave_intermedia",
+            "incorporated": true,
+            "explanation": "El agente cambia a examinar la llave intermedia (paso 17)."
+          },
+          {
+            "feedback_step": 18,
+            "feedback_evidence": "Error: el paso hacia norte está bloqueado por puerta blindada. Tenés que abrirla primero.",
+            "next_relevant_step": 19,
+            "next_action_evidence": "examine puerta_blindada",
+            "incorporated": false,
+            "explanation": "El agente vuelve al bucle intentando examinar la puerta (paso 19) sin usar la llave."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 9643,
+        "output_tokens": 8141,
+        "attempts": 2
+      }
+    },
+    {
+      "scenario": "extreme-archive",
+      "difficulty": "extreme",
+      "attempt": 4,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": false,
+        "score": null
+      },
+      "judgment": {
+        "applicable": false,
+        "score": null,
+        "justification": "No se identificó feedback correctivo en la traza. Los únicos elementos que podrían considerarse feedback son los 'worker_errors' en el paso 3, pero estos son advertencias internas del sistema sobre inconsistencias en el procesamiento de documentos, no correcciones que indiquen que una acción falló o que requieran cambiar una decisión posterior. El agente ejecutó acciones exitosas (examine, research_documents, take, use) sin recibir feedback que indicara errores o precondiciones no cumplidas. Por lo tanto, no hay episodios de feedback correctivo que evaluar.",
+        "episodes": []
+      },
+      "judge_usage": {
+        "input_tokens": 3840,
+        "output_tokens": 1048,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "study-with-key",
+      "difficulty": "easy",
+      "attempt": 5,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": false,
+        "score": null
+      },
+      "judgment": {
+        "applicable": false,
+        "score": null,
+        "justification": "No se identificó ningún feedback correctivo en la traza. Todas las acciones del agente fueron exitosas en su primera ejecución: el examinar la alfombra reveló la llave, tomar la llave funcionó correctamente, y usar la llave en la puerta principal abrió la puerta sin problemas. No hubo mensajes de error, fallos de precondiciones, combinaciones incompatibles ni correcciones concretas que el agente debiera incorporar.",
+        "episodes": []
+      },
+      "judge_usage": {
+        "input_tokens": 1575,
+        "output_tokens": 1075,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "apartment-keys",
+      "difficulty": "medium",
+      "attempt": 5,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 2
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 2,
+        "justification": "El agente recibió feedback correctivo en tres ocasiones: sobre una dirección inválida (paso 8) y sobre no ver la puerta (pasos 9 y 11). En todos los casos, la primera acción relevante posterior incorporó la corrección: navegó por la salida correcta (paso 10), se movió para buscar la puerta (paso 10), y examinó el entorno para ubicarse (paso 12).",
+        "episodes": [
+          {
+            "feedback_step": 8,
+            "feedback_evidence": "Error: no hay salida 'sur' desde aquí. Salidas disponibles: oeste.",
+            "next_relevant_step": 10,
+            "next_action_evidence": "Caminas hacia oeste. Llegas a Pasillo.",
+            "incorporated": true,
+            "explanation": "El feedback indica que la salida sur es inválida y que oeste está disponible. La acción inmediata posterior (paso 9) trata otro asunto (usar llave), pero la primera acción de navegación subsiguiente (paso 10) usa correctamente la salida oeste."
+          },
+          {
+            "feedback_step": 9,
+            "feedback_evidence": "Error: no ves ningún 'puerta_principal' aquí.",
+            "next_relevant_step": 10,
+            "next_action_evidence": "Caminas hacia oeste. Llegas a Pasillo.",
+            "incorporated": true,
+            "explanation": "El feedback indica que la puerta no es visible en la ubicación actual. La siguiente acción relevante (paso 10) mueve al agente hacia otra ubicación para buscarla, incorporando la corrección."
+          },
+          {
+            "feedback_step": 11,
+            "feedback_evidence": "Error: no ves ningún 'puerta_principal' aquí.",
+            "next_relevant_step": 12,
+            "next_action_evidence": "Estás en Pasillo.\nUn pasillo en penumbra con cuadros torcidos. Conecta el recibidor al sur con la cocina al este.\nNo ves nada de interés.\nSalidas: este, sur.\nLlevas: llave dorada [id: llave_oro].",
+            "incorporated": true,
+            "explanation": "El feedback indica que la puerta no es visible en el Pasillo. La siguiente acción relevante (paso 12) es examinar el entorno para identificar salidas válidas, lo cual es coherente con la corrección recibida."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 2195,
+        "output_tokens": 2980,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "color-locks",
+      "difficulty": "medium",
+      "attempt": 5,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 2
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 2,
+        "justification": "El agente recibió feedback correctivo en tres ocasiones al intentar usar llaves de colores plateado, rojo y verde en la puerta principal con cerradura dorada. En todos los casos, el agente incorporó inmediatamente el feedback en la siguiente acción relevante, usando cada llave en el cofre correspondiente de su mismo color. Esto demuestra una comprensión y aplicación consistente del principio de que las llaves solo funcionan con cerraduras del mismo color.",
+        "episodes": [
+          {
+            "feedback_step": 3,
+            "feedback_evidence": "Intentas usar llave plateada con puerta principal, pero no encaja.",
+            "next_relevant_step": 5,
+            "next_action_evidence": "Usas llave plateada con cofre plateado. Se abre.",
+            "incorporated": true,
+            "explanation": "El agente recibió feedback de que la llave plateada no encaja en la cerradura dorada. Inmediatamente después, usó la llave plateada en el cofre plateado correspondiente, demostrando que entendió que las llaves solo funcionan con cerraduras del mismo color."
+          },
+          {
+            "feedback_step": 8,
+            "feedback_evidence": "Intentas usar llave roja con puerta principal, pero no encaja.",
+            "next_relevant_step": 9,
+            "next_action_evidence": "Usas llave roja con cofre rojo. Se abre.",
+            "incorporated": true,
+            "explanation": "El agente recibió feedback de que la llave roja no encaja en la cerradura dorada. Inmediatamente después, usó la llave roja en el cofre rojo correspondiente, demostrando que aplicó la lección aprendida."
+          },
+          {
+            "feedback_step": 12,
+            "feedback_evidence": "Intentas usar llave verde con puerta principal, pero no encaja.",
+            "next_relevant_step": 13,
+            "next_action_evidence": "Usas llave verde con cofre verde. Se abre.",
+            "incorporated": true,
+            "explanation": "El agente recibió feedback de que la llave verde no encaja en la cerradura dorada. Inmediatamente después, usó la llave verde en el cofre verde correspondiente, demostrando consistencia en la aplicación del principio de color-matching."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 2512,
+        "output_tokens": 2353,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "library-search",
+      "difficulty": "hard",
+      "attempt": 5,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": false,
+        "score": null
+      },
+      "judgment": {
+        "applicable": false,
+        "score": null,
+        "justification": "No se identificaron episodios de feedback correctivo en la traza. Todas las acciones del agente fueron exitosas (todos los valores 'error' son null) y los outputs de las herramientas consisten únicamente en descripciones neutrales del estado del mundo o confirmaciones de acciones exitosas. No hubo respuestas que indicaran fallo de acción, precondiciones no cumplidas, combinaciones incompatibles o correcciones concretas que el agente debiera incorporar.",
+        "episodes": []
+      },
+      "judge_usage": {
+        "input_tokens": 5585,
+        "output_tokens": 1069,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "office-sequence",
+      "difficulty": "hard",
+      "attempt": 5,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "secuencia completada en el orden correcto"
+      },
+      "feedback_use": {
+        "applicable": true,
+        "score": 1
+      },
+      "judgment": {
+        "applicable": true,
+        "score": 1,
+        "justification": "El agente recibió 8 episodios de feedback correctivo sobre direcciones inválidas. En 7 de ellos (pasos 7, 13, 24, 27, 31, 34, 38), el agente incorporó inmediatamente la corrección en la siguiente acción relevante, utilizando la dirección correcta que el feedback indicaba como disponible. Sin embargo, en el episodio del paso 41, no hubo una acción posterior relevante porque la ejecución terminó al alcanzar el máximo de iteraciones, por lo que este episodio se marca como no incorporado según las instrucciones. Por lo tanto, el uso del feedback es parcial.",
+        "episodes": [
+          {
+            "feedback_step": 7,
+            "feedback_evidence": "Error: no hay salida 'este' desde aquí. Salidas disponibles: sur.",
+            "next_relevant_step": 8,
+            "next_action_evidence": "go con direction 'sur'",
+            "incorporated": true,
+            "explanation": "El agente inmediatamente usa 'sur' en el paso siguiente."
+          },
+          {
+            "feedback_step": 13,
+            "feedback_evidence": "Error: no hay salida 'sur' desde aquí. Salidas disponibles: oeste.",
+            "next_relevant_step": 14,
+            "next_action_evidence": "go con direction 'oeste'",
+            "incorporated": true,
+            "explanation": "El agente inmediatamente usa 'oeste' en el paso siguiente."
+          },
+          {
+            "feedback_step": 24,
+            "feedback_evidence": "Error: no hay salida 'puerta_principal' desde aquí. Salidas disponibles: este.",
+            "next_relevant_step": 25,
+            "next_action_evidence": "go con direction 'este'",
+            "incorporated": true,
+            "explanation": "El agente inmediatamente usa 'este' en el paso siguiente."
+          },
+          {
+            "feedback_step": 27,
+            "feedback_evidence": "Error: no hay salida 'oeste' desde aquí. Salidas disponibles: sur.",
+            "next_relevant_step": 28,
+            "next_action_evidence": "go con direction 'sur'",
+            "incorporated": true,
+            "explanation": "El agente inmediatamente usa 'sur' en el paso siguiente."
+          },
+          {
+            "feedback_step": 31,
+            "feedback_evidence": "Error: no hay salida 'puerta_principal' desde aquí. Salidas disponibles: este.",
+            "next_relevant_step": 32,
+            "next_action_evidence": "go con direction 'este'",
+            "incorporated": true,
+            "explanation": "El agente inmediatamente usa 'este' en el paso siguiente."
+          },
+          {
+            "feedback_step": 34,
+            "feedback_evidence": "Error: no hay salida 'oeste' desde aquí. Salidas disponibles: sur.",
+            "next_relevant_step": 35,
+            "next_action_evidence": "go con direction 'sur'",
+            "incorporated": true,
+            "explanation": "El agente inmediatamente usa 'sur' en el paso siguiente."
+          },
+          {
+            "feedback_step": 38,
+            "feedback_evidence": "Error: no hay salida 'puerta_principal' desde aquí. Salidas disponibles: este.",
+            "next_relevant_step": 39,
+            "next_action_evidence": "go con direction 'este'",
+            "incorporated": true,
+            "explanation": "El agente inmediatamente usa 'este' en el paso siguiente."
+          },
+          {
+            "feedback_step": 41,
+            "feedback_evidence": "Error: no hay salida 'oeste' desde aquí. Salidas disponibles: sur.",
+            "next_relevant_step": null,
+            "next_action_evidence": null,
+            "incorporated": false,
+            "explanation": "No hubo acción posterior relevante (se alcanzó el máximo de iteraciones)."
+          }
+        ]
+      },
+      "judge_usage": {
+        "input_tokens": 4006,
+        "output_tokens": 3528,
+        "attempts": 1
+      }
+    },
+    {
+      "scenario": "extreme-archive",
+      "difficulty": "extreme",
+      "attempt": 5,
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "puerta principal está abierta"
+      },
+      "feedback_use": {
+        "applicable": false,
+        "score": null
+      },
+      "judgment": {
+        "applicable": false,
+        "score": null,
+        "justification": "No se identificó feedback correctivo aplicable al agente. El campo 'worker_errors' en el paso 4 reporta un problema interno del sistema ('objetos no revelados por examine'), pero no constituye una corrección dirigida al agente que requiera modificar su plan de acción. El agente continuó con su objetivo de tomar y usar la llave encontrada sin que el feedback reportado tuviera impacto en sus decisiones posteriores.",
+        "episodes": []
+      },
+      "judge_usage": {
+        "input_tokens": 3325,
+        "output_tokens": 1408,
+        "attempts": 1
+      }
+    }
+  ],
+  "errors": [
+    {
+      "scenario": "library-search",
+      "difficulty": "hard",
+      "attempt": 1,
+      "error_type": "StructuredCallError",
+      "error": "No se pudo obtener una respuesta estructurada válida después de 3 intentos. Último error: 3 validation errors for FeedbackJudgment\nepisodes.2.feedback_evidence\n  Field required [type=missing, input_value={'feedback_step': 11}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing\nepisodes.2.incorporated\n  Field required [type=missing, input_value={'feedback_step': 11}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing\nepisodes.2.explanation\n  Field required [type=missing, input_value={'feedback_step': 11}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing",
+      "judge_usage": {
+        "input_tokens": 18174,
+        "output_tokens": 12288,
+        "attempts": 3
+      },
+      "source_outcome": {
+        "goal_achieved": false,
+        "goal_reason": "puerta principal está cerrada"
+      }
+    },
+    {
+      "scenario": "office-sequence",
+      "difficulty": "hard",
+      "attempt": 2,
+      "error_type": "StructuredCallError",
+      "error": "No se pudo obtener una respuesta estructurada válida después de 3 intentos. Último error: El modelo no invocó la tool final_result. Debe usarla para devolver la respuesta.",
+      "judge_usage": {
+        "input_tokens": 12465,
+        "output_tokens": 12288,
+        "attempts": 3
+      },
+      "source_outcome": {
+        "goal_achieved": true,
+        "goal_reason": "secuencia completada en el orden correcto"
+      }
+    },
+    {
+      "scenario": "vault-combination",
+      "difficulty": "extreme",
+      "attempt": 3,
+      "error_type": "StructuredCallError",
+      "error": "No se pudo obtener una respuesta estructurada válida después de 3 intentos. Último error: El modelo no invocó la tool final_result. Debe usarla para devolver la respuesta.",
+      "judge_usage": {
+        "input_tokens": 14475,
+        "output_tokens": 12288,
+        "attempts": 3
+      },
+      "source_outcome": {
+        "goal_achieved": false,
+        "goal_reason": "puerta principal está cerrada"
+      }
+    },
+    {
+      "scenario": "vault-combination",
+      "difficulty": "extreme",
+      "attempt": 4,
+      "error_type": "StructuredCallError",
+      "error": "No se pudo obtener una respuesta estructurada válida después de 3 intentos. Último error: 2 validation errors for FeedbackJudgment\njustification\n  Field required [type=missing, input_value={'applicable': True, 'epi... 'incorporated': True}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing\nepisodes.5.explanation\n  Field required [type=missing, input_value={'feedback_step': 20, 'fe...\", 'incorporated': True}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing",
+      "judge_usage": {
+        "input_tokens": 12971,
+        "output_tokens": 12288,
+        "attempts": 3
+      },
+      "source_outcome": {
+        "goal_achieved": false,
+        "goal_reason": "puerta principal está cerrada"
+      }
+    },
+    {
+      "scenario": "backtracking-vault",
+      "difficulty": "extreme",
+      "attempt": 5,
+      "error_type": "StructuredCallError",
+      "error": "No se pudo obtener una respuesta estructurada válida después de 3 intentos. Último error: El modelo no invocó la tool final_result. Debe usarla para devolver la respuesta.",
+      "judge_usage": {
+        "input_tokens": 13614,
+        "output_tokens": 12288,
+        "attempts": 3
+      },
+      "source_outcome": {
+        "goal_achieved": false,
+        "goal_reason": "puerta principal está cerrada"
+      }
+    },
+    {
+      "scenario": "vault-combination",
+      "difficulty": "extreme",
+      "attempt": 5,
+      "error_type": "StructuredCallError",
+      "error": "No se pudo obtener una respuesta estructurada válida después de 3 intentos. Último error: 1 validation error for FeedbackJudgment\njustification\n  Field required [type=missing, input_value={'applicable': True}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/missing",
+      "judge_usage": {
+        "input_tokens": 14634,
+        "output_tokens": 12288,
+        "attempts": 3
+      },
+      "source_outcome": {
+        "goal_achieved": false,
+        "goal_reason": "puerta principal está cerrada"
+      }
+    }
+  ]
+}

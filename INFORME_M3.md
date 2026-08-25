@@ -44,7 +44,7 @@ Los resultados quedan en eval/results/final/<run_id>.json (un archivo por corrid
 > fixes de la Sección 1 (subsecciones 9-12) activados. Los 5 escenarios
 > obligatorios más `extreme-archive` quedan resueltos (`pass@k ≥ 0.5`); los
 > dos `vault-*` no. La dimensión cualitativa (LLM-as-judge, Sección 2) ya
-> está implementada y corrida sobre esta misma corrida oficial. El accuracy global obtenido fue 30/40 (0.75). Enxluyendo los
+> está implementada y corrida sobre esta misma corrida oficial. El accuracy global obtenido fue 30/40 (0.75). Excluyendo los
 > tres escenarios `extreme` (solo los 5 obligatorios,
 > `easy`/`medium`/`hard`), el accuracy es 24/25 (0.96). Los resultados estan guardados en
 > `eval/results/final/20260824T184038965171Z.json`. 
@@ -65,7 +65,7 @@ implementó a mano, hablando directo con la API de Bedrock.
 - **M1 — Loop básico.** `LLMClient` sobre Bedrock, `ToolRegistry` con schema
   autogenerado y un loop ReAct con condición de corte: el agente razona,
   llama herramientas y devuelve un resultado.
-- **M2 — Robustez.** Manejo de contexto (sliding window / summarization),
+- **M2 — Robustez.** Manejo de contexto (sliding window),
   structured outputs con Pydantic más retry, cálculo de tokens y manejo de
   errores ante tools que fallan.
 - **M3 — Aplicación + evaluación.** Ahora se trata de aplicar ese framework a
@@ -90,11 +90,7 @@ implementó a mano, hablando directo con la API de Bedrock.
 
 ### Qué agregamos nosotros
 
-El framework de M1+M2 no se modificó en su contrato público: `build_agent`
-(`student_framework/__init__.py`), y los métodos `register_tool`/`run` de la
-clase `Agent` (`student_framework/agent.py`) mantienen la misma interfaz
-declarada en `mia_agents/protocols.py`. Lo que M3 agrega es específico del
-problema, no un cambio de arquitectura del agente:
+El framework de M1+M2 no se modificó en su contrato público: `build_agent` (`student_framework/__init__.py`) y los métodos `register_tool` y `run` de la clase `Agent` (`student_framework/agent.py`) mantienen la interfaz declarada en `mia_agents/protocols.py`. M3 conserva esa interfaz, pero extiende la arquitectura interna del agente con componentes específicos para este problema, como el scratchpad, el planner, las guardas anti-repetición y la investigación delegada.
 
 #### 1. Registro de tools del mundo
 
@@ -130,42 +126,17 @@ venían dados y se los entregamos al agente para cada escenario.
 
 #### 2. Una tool propia: `research_documents`
 
-(`student_framework/m3_research.py`). A diferencia de las tools de la
-subsección 1, esta no viene del scaffold: es la única tool nueva que
-diseñamos desde cero para M3. Se registra siempre, sin flag de on/off, en
-todos los escenarios (`eval/run.py:263-269`), pero solo es relevante cuando
-`examine` revela una colección de más de cinco documentos similares — el
-caso de `extreme-archive` (20 expedientes, ~16K tokens), que no entra en el
-contexto principal.
+(`student_framework/m3_research.py`). A diferencia de las tools de la subsección 1, esta no viene del scaffold: es la única tool nueva que diseñamos desde cero para M3. Se registra siempre, sin flag de activación, en todos los escenarios (`eval/run.py:263-284`), pero fue diseñada para colecciones grandes de documentos similares, como los veinte expedientes de extreme-archive.
 
-Delega la inspección en lotes de cinco a un sub-agente aislado, que solo
-puede observar (no puede `take`/`use`/`go`), y devuelve un reporte compacto
-validado contra un schema Pydantic — el código verifica que lo que reporta
-el sub-agente coincida con lo que realmente se observó, descartando
-cualquier objeto u ID que el sub-agente afirme haber encontrado sin que
-`examine` lo haya revelado. El agente principal nunca ve la prosa completa
-de los 20 expedientes, solo ese reporte ya verificado. Esta tool se retoma
-más adelante en el Experimento 3 (Sección 4), donde se compara contra una
-versión anterior sin la validación descrita arriba.
+La tool divide los documentos en lotes de cinco y ejecuta `examine` sobre cada uno. Un worker LLM aislado recibe esas observaciones y las sintetiza en un reporte compacto validado con Pydantic. De este modo, el agente principal recibe información resumida en lugar de incorporar la prosa completa de los veinte expedientes a su contexto. Esta tool se retoma en el Experimento 3 (Sección 4).
+
 
 #### 3. Scratchpad M3
 
-(`student_framework/m3_scratchpad.py`). Opcional vía el flag
-`use_m3_scratchpad` (`student_framework/agent.py:93`, activado en
-`eval/run.py:89`). Un bloque de estado de trabajo (IDs observados,
-inventario, ubicación, salidas) que se reconstruye determinísticamente a
-partir de las tool outputs y se inyecta en el mensaje de sistema antes de
-cada llamada al LLM. No es memoria aprendida ni resumen: es una proyección
-determinística del estado ya observado, pensada para escenarios donde un
-único `look` no alcanza (`apartment-keys`, `office-sequence`).
+(`student_framework/m3_scratchpad.py`). Opcional vía el flag `use_m3_scratchpad` (`student_framework/agent.py:93`, activado en `eval/run.py:89`). Un bloque de estado de trabajo (IDs observados, inventario, ubicación, salidas) que se reconstruye determinísticamente a partir de las tool outputs y se inyecta en el mensaje de sistema antes de cada llamada al LLM. No es memoria aprendida ni resumen: es una proyección determinística del estado ya observado, pensada para escenarios donde un único `look` no alcanza (`apartment-keys`, `office-sequence`).
 
-Surge de una limitación del sliding window de M2: cuando el historial se
-recorta por longitud, una observación hecha varios turnos atrás (por
-ejemplo, en otro cuarto) puede quedar fuera de la ventana visible para el
-modelo. El scratchpad reinyecta ese estado en cada turno, sin depender de
-que siga presente en el historial recortado. Incluye además un aviso
-determinístico de objetos ya revelados en un contenedor chico (≤5 ítems) que
-todavía no están en el inventario — ver Experimento 5.
+Surge de una limitación del sliding window de M2: cuando el historial se recorta por longitud, una observación hecha varios turnos atrás (por ejemplo, en otro cuarto) puede quedar fuera de la ventana visible para el modelo. El scratchpad reinyecta ese estado en cada turno, sin depender de que siga presente en el historial recortado. Incluye además un aviso determinístico de objetos ya revelados en un contenedor chico (≤5 ítems) que todavía no están en el inventario — ver Experimento 5.
+
 
 #### 4. Planner explícito
 
@@ -185,19 +156,8 @@ previos, no de una idea genérica de "vamos a agregar un planner":
 
 **Cómo funciona, en dos partes:**
 
-1. Antes de que el agente observe nada, una única llamada forzada a
-   `structured_call` (el mismo mecanismo de M2 que obliga a llamar
-   `final_result`) le pide al LLM un `Plan` (modelo Pydantic: lista de
-   `steps` en lenguaje natural, mínimo un paso) a partir del mensaje del
-   usuario. Al forzar esa salida estructurada, el modelo no puede devolver
-   solo prosa — tiene que producir el objeto `Plan` sí o sí, lo que ataca
-   directo el fallo de `color-locks`. Además, el prompt de planificación es
-   explícito en dos restricciones: no puede nombrar tools ni IDs (todavía no
-   se observó el mundo real), y no puede inventar qué llave abre qué
-   cerradura si el mensaje no lo dice — tiene que proponer algo genérico
-   ("probar cada llave en el objeto compatible") en vez de adivinar, para
-   que el plan no meta un supuesto falso que el agente después siga a
-   ciegas.
+1. Antes de que el agente observe nada, una única llamada forzada a `structured_call` (el mismo mecanismo de M2 que obliga a llamar `final_result`) le pide al LLM un `Plan` (modelo Pydantic: lista de `steps` en lenguaje natural, mínimo un paso) a partir del mensaje del usuario. En esta instancia, el schema sólo valida la estructura del plan. Al forzar esa salida estructurada, no se acepta una respuesta compuesta únicamente por prosa: el resultado aceptado debe ser un objeto `Plan` válido, lo que mitiga el fallo observado en `color-locks`. Este flujo se completa siempre que el modelo produzca una salida válida dentro de los reintentos permitidos. Además, el prompt de planificación es explícito en dos restricciones: le indica que no debe nombrar tools ni IDs —todavía no se observó el mundo real— ni inventar qué llave abre qué cerradura si el mensaje no lo dice. Debe proponer algo genérico (“probar cada llave en el objeto compatible”) en vez de adivinar, para evitar que el plan introduzca un supuesto falso que el agente después siga a ciegas.
+
 2. Ese plan se renderiza como texto (`render_plan`) y se inyecta en el
    system prompt junto al scratchpad, con una advertencia final explícita:
    puede tener detalles incompletos o equivocados, y el agente debe
@@ -220,10 +180,7 @@ actualiza su plan.
 El agente identifica una "misma llamada" por firma (`_tool_call_signature`:
 nombre de la tool + argumentos, `agent.py:229`), no por resultado — dos
 `examine` sobre targets distintos no cuentan como repetición. Con el valor
-`1` de la config oficial: si una tool call ya falló una vez con esa firma
-exacta, el siguiente intento idéntico se bloquea antes de llamar al modelo;
-lo mismo para observaciones (`look`, `examine`, `research_documents`, según
-`observation_tool_names` en `eval/run.py:88`) repetidas sin haber tomado
+`1` de la config oficial: si una tool call ya falló una vez con esa firma exacta, el siguiente intento idéntico se bloquea antes de ejecutar la tool; lo mismo para observaciones (`look`, `examine`, `research_documents`, según `observation_tool_names` en `eval/run.py:88`) repetidas sin haber tomado
 ninguna acción nueva de por medio. En ambos casos, en vez de ejecutar la
 tool, se le devuelve al agente un error explícito ("elegí una acción
 diferente") para forzarlo a probar algo distinto.
@@ -251,7 +208,7 @@ los escenarios ya evaluados por un error de un solo intento.
 reconocidos como transitorios (`modelerrorexception`,
 `invalid sequence as part of tooluse`), para que este caso entre por el
 mismo camino de reintento que ya existía, en vez de crear un mecanismo
-nuevo. Con esto, la corrida oficial completa (30 intentos) pasó a terminar
+nuevo. Con esto, la corrida oficial completa (40 intentos) pasó a terminar
 sin abortar por este motivo.
 
 #### 7. Herramienta de diagnóstico: `eval/manual_run.py`
@@ -355,10 +312,8 @@ inerte puede bloquear una acción legítima de forma permanente. Test nuevo:
 
 #### 11. Presupuesto de iteraciones subido a 40
 
-**Contexto.** Con `max_iterations=25`, los tres escenarios más difíciles
-(`office-sequence`, `vault-combination`, `backtracking-vault`) agotaban el
-tope en la mayoría de sus corridas, no por errores de razonamiento sino por
-falta de presupuesto — llegaban a estar a pocos pasos del final.
+**Contexto.** Con `max_iterations=25`, los tres escenarios más difíciles (`office-sequence`, `vault-combination`, `backtracking-vault`) agotaban el tope en la mayoría de sus corridas y, en varias trazas, llegaban a estar a pocos pasos del final. Esto motivó evaluar si aumentar el presupuesto de iteraciones mejoraba el desempeño.
+
 
 **Qué se cambió.** `max_iterations`: `25` → `40` en `M3_AGENT_CONFIG`,
 uniforme para los ocho escenarios (sin ajustar por dificultad, siguiendo el
@@ -467,12 +422,11 @@ de errores, repeticiones, tokens, límite de iteraciones) porque ya tienen
 fuente determinística (Sección "Análisis de errores" más abajo); agregarlas
 como juicio del LLM hubiera sumado costo y variabilidad sin información
 nueva. El juez no recibe `goal_achieved` ni `goal_reason` en el prompt —
-esos campos se adjuntan después de que el juez ya falló, para no sesgar su
+esos campos se adjuntan después de que el juez ya emitió su evaluación, para no sesgar su
 lectura de la traza.
 
 **Qué modelo se usó y por qué.** Se calibraron dos modelos sobre la misma
-traza (`office-sequence`, intento 2, que tiene 7 episodios de feedback
-identificados manualmente):
+traza (`office-sequence`,  intento 2, que tiene 7 episodios de feedback identificados en una revisión de referencia realizada con GPT-5.6 Sol):
 
 | Modelo | Episodios detectados (de 7) | Cobertura |
 |---|---:|---:|
@@ -611,6 +565,9 @@ escenarios, `DEVELOPMENT_SCENARIOS=None`) con `amazon.nova-lite-v1:0`
   1, subsección 10).
 
 **`pass@k` por escenario (umbral de resolución: 0.5):**
+
+*En este informe, pass@k refiere a la tasa empírica de éxito sobre cinco ejecuciones, no al estimador combinatorio clásico.*
+
 
 | Escenario | Dificultad | Éxitos/Intentos | `pass@k` | ¿Resuelto? |
 |---|---|---:|---:|:---:|
